@@ -42,10 +42,10 @@ typedef union
 } odrv_heartbeat_data_t;
 
 void Odrive_CAN_motors::setSpeed(uint8_t index, float speed){
-	if (T_motor[index].odrive_set_axis.input_mode != ODRV_CONTROL_CTRLMODE_VELOCITY){
-		T_motor[index].odrive_set_axis.control_mode = ODRV_CONTROL_INPUTMODE_VEL_RAMP;
-		send_msg(index, MSG_SET_CONTROLLER_MODES);
-	}
+	// if (T_motor[index].odrive_set_axis.input_mode != ODRV_CONTROL_CTRLMODE_VELOCITY){
+	// 	T_motor[index].odrive_set_axis.control_mode = ODRV_CONTROL_INPUTMODE_VEL_RAMP;
+	// 	send_msg(index, MSG_SET_CONTROLLER_MODES);
+	// }
     T_motor[index].odrive_set_axis.input_vel = speed;
 	send_msg(index, MSG_SET_INPUT_VEL);
 }

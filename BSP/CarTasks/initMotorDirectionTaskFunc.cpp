@@ -40,30 +40,29 @@ void initMotorDirectionTaskFunc(void const * argument){
     ST_LOGI("init function start");
 
     for(;;){
-        // for(int i = 0; i < 3; i++){
-        //     init_status[i] = HAL_GPIO_ReadPin(HALL_Port[i], HALL_PIN[i]);
-        //     if(init_status[i] == LOW_LEVEL){
-        //         xEventGroupSetBits(init_event_handle, HALL_OK << i);
-        //         // motor_values.rudder_motors[i] = 0; 
-        //         djiMotorGroupLowerId.motor[i].base_angle = djiMotorGroupLowerId.motor[i].angle + offset[i];     
-        //     }
-        // }
-        // ret_val = xEventGroupWaitBits(init_event_handle, HALL1_OK|HALL2_OK|HALL3_OK, pdFAIL, pdTRUE, 1000);
-        // if(ret_val & ALL_OK){
-        //     for(int i = 0; i < 3; i++){
-        //         // motor_values.rudder_motors[i] = djiMotorGroupLowerId.motor[i].base_angle + 90;
-        //         djiMotorGroupLowerId.SetInput(i, motor_values.rudder_motors[i], MotorPID::PENG_CTRL_TYPE_POSITION);
-        //     }
-        //     //TODO: angle control
-        //     break;
-        // }
-        for(int i = 0; i < 3; i++){
-            motor_values.rudder_motors[i] = base_angle;
-        }
         motor_values.type = CTRL_TYPE_ANGLE;
-        osDelay(5000);
-        base_angle += 10.f;
-        // ST_LOGI("init angle : %.1f", base_angle);
+        for(int i = 0; i < 3; i++){
+            int temp_val = HAL_GPIO_ReadPin(HALL_Port[i], HALL_PIN[i]);
+            // init_status[i] = HAL_GPIO_ReadPin(HALL_Port[i], HALL_PIN[i]);
+            if(init_status[i] != LOW_LEVEL && temp_val == LOW_LEVEL){
+                init_status[i] = LOW_LEVEL;
+                xEventGroupSetBits(init_event_handle, HALL_OK << i);
+                djiMotorGroupLowerId.motor[i].base_angle = base_angle + offset[i];
+                motor_values.rudder_motors[i] = 90;
+            } else if (init_status[i] == LOW_LEVEL) {
+                motor_values.rudder_motors[i] = 90;
+            } else {
+                motor_values.rudder_motors[i] = base_angle;
+            }
+        }
+
+        base_angle += 0.9f;
+        ret_val = xEventGroupWaitBits(init_event_handle, HALL1_OK|HALL2_OK|HALL3_OK, pdFAIL, pdTRUE, 40);
+        
+        if(ret_val == ALL_OK){
+            break;
+        }
+
     }
 
     xTaskCreate(userInputTaskFunc, "UserInput", 1024, NULL, tskIDLE_PRIORITY, NULL);

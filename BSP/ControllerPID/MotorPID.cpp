@@ -106,7 +106,7 @@ void MotorPID::SetSpeedLimit(float speed)
     else if (speed < 0)
         speed = 0;
 
-    limitTorque = speed; // TODO : check 3508 & 2006 max value here
+    limitSpeed = speed; // TODO : check 3508 & 2006 max value here
 }
 
 float MotorPID::CalPeng(float _input, peng_ctrl_type_t type)
@@ -177,9 +177,9 @@ float MotorPID::CalPeng(float _input, peng_ctrl_type_t type)
     // cnt ++;
 	// if (cnt > 500){
 	// 	cnt = 0;
-	// 	ST_LOGI("(%.1f\t%.1f\t%.0f)",  angle, 
-	// 							pos_out,
-	// 							vel_out);
+	// 	ST_LOGI("(%.1f\t%.1f\t%.1f\t%.1f)",  angle, 
+	// 							_input,
+	// 							velocity, pos_out);
 	// }
 
     return vel_out;

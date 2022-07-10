@@ -34,6 +34,10 @@ void motorRoutineTaskFunc(void const * argument)
 
     motor_values.type = CTRL_TYPE_ANGLE;
 
+    motor_values.vel_motors[0] = 0.f;
+    motor_values.vel_motors[1] = 0.f;
+    motor_values.vel_motors[2] = 0.f;
+
 
     // start tim
     HAL_TIM_RegisterCallback(&htim6, HAL_TIM_PERIOD_ELAPSED_CB_ID, motorTimeupCallback);
@@ -43,7 +47,7 @@ void motorRoutineTaskFunc(void const * argument)
         if (xQueueReceive(qMotorTimeupHandle, &__ptr, portMAX_DELAY) == pdTRUE)
         { // wait for timer semaphore
             // dji motor cal area
-            for (int i = 0; i < 1; i++)
+            for (int i = 0; i < 3; i++)
             {
                 djiMotorGroupLowerId.SetInput(i, motor_values.rudder_motors[i],
                     motor_values.type == CTRL_TYPE_ANGLE ? 

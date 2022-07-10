@@ -184,15 +184,15 @@ DjiMotor::DjiMotor(){
 	pid.pVel.kd = 0.5f;
 
 	pid.pidPos = {
-		.Kp = 10.f * ratio * 2,
-		.Ki = 0.01f * ratio * 2,
-		.Kd = 15.f * ratio * 2
+		.Kp = 10.f * ratio ,
+		.Ki = 0.001f * ratio,
+		.Kd = 3.f * ratio
 	};
 
 	pid.pidVel = {
-		.Kp = 10.f * 2,
-		.Ki = 0.1f * 2,
-		.Kd = 0.5 * 2
+		.Kp = 10.f,
+		.Ki = 0.01f,
+		.Kd = 0.5
 	};
 
 	arm_pid_init_f32(&(pid.pidPos), 1);
@@ -215,11 +215,11 @@ float DjiMotor::get_angle(bool if_cal_circle){
 float DjiMotor::update(float _input, MotorPID::peng_ctrl_type_t _type){
 	is_update = true;
 	output = pid.CalPeng(_input, _type);
-	static float debug_input = -1;
-	if (debug_input != _input){
-		debug_input = _input;
-		ST_LOGD("%.1f,%.0f", debug_input, output);
-	}
+	// static float debug_input = -1;
+	// if (debug_input != _input){
+	// 	debug_input = _input;
+	// 	ST_LOGD("%.1f,%.0f", debug_input, output);
+	// }
 	// output = pid.CalcDceOutput(_input, 0);
 	return output;
 }

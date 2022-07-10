@@ -4,7 +4,7 @@
 void userInputTaskFunc(void * argument){
 
     for (;;){
-        
+        vTaskDelay(100);
     }
 
 }
