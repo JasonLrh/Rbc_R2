@@ -41,11 +41,11 @@ void transfer_remote_input_data(void){
     temperBoard.set_angle_expand(remote_input.zhua.expand_angle);
     temperBoard.set_height_lower(remote_input.zhua.height);
     temperBoard.set_height_higher(remote_input.puller.height);
-    temperBoard.set_sucker(remote_input.puller.isSuckerOn);
+    temperBoard.set_sucker(remote_input.puller.isSuckerOn == 0 ? false : true);
     if (remote_input.puller.pState == PULLER_STATE_POSITION){
         temperBoard.set_puller_position(remote_input.puller.len); 
     } else {
-        temperBoard.set_puller(remote_input.puller.len == 0 ? false : true);
+        temperBoard.set_puller_force(remote_input.puller.len);
     }
 
     // TODO: check validate here
@@ -54,6 +54,10 @@ void transfer_remote_input_data(void){
 }
 
 void userInputTaskFunc(void * argument){
+
+    remote_input.zhua.height = 500;
+    remote_input.puller.height = 500;
+    remote_input.zhua.rotate_angle = 45;
 
     for (;;){
         transfer_remote_input_data();

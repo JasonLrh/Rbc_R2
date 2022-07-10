@@ -66,7 +66,6 @@ private:
 };
 
 
-void DjiCanMotorsInit(void);
 // void DjiCanMotorsForceStop(void);
 
 

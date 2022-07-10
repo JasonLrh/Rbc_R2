@@ -10,20 +10,11 @@
 #define SUCKER_STATE_OFF (0 << 4)
 #define SUCKER_STATE_ON  (1 << 4)
 
+
+
 class TemperBoard {
 public:
-    TemperBoard(FDCAN_HandleTypeDef *_hfdcan);
-    
-    bool set_angle_routate(float angle);
-    bool set_angle_expand(float angle);
-    bool set_height_lower(float height);
-    bool set_height_higher(float height);
-    bool set_sucker(bool on);
-    bool set_puller(bool push);
-    bool set_puller_position(float len);
-    void output(void);
-
-    union temper_board_tx_msg_t{
+    union temper_board_tx_msg_t {
         struct __packed{
             int8_t a_e; // 180 -> 90
             int8_t a_r; // -90 
@@ -36,11 +27,23 @@ public:
         }val;
         uint8_t raw[8];
     };
+    
+    TemperBoard(FDCAN_HandleTypeDef *_hfdcan);
+    
+    bool set_angle_routate(float angle);
+    bool set_angle_expand(float angle);
+    bool set_height_lower(float height);
+    bool set_height_higher(float height);
+    bool set_sucker(bool on);
+    bool set_puller_force(float val);
+    bool set_puller_position(float len);
+
+    void output(void);
 
     temper_board_tx_msg_t state;
 
 private:
-    uint8_t sucker_switch = SUCKER_STATE_OFF;
+    uint32_t sucker_switch = SUCKER_STATE_OFF;
     temper_board_tx_msg_t info;
 
     bsp_can_device_t can_devices;

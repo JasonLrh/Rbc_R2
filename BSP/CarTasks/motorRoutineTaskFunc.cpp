@@ -31,8 +31,6 @@ void motorRoutineTaskFunc(void const * argument)
     char * __ptr;
     // uint8_t cnt_12ms;
     // motor init
-    DjiCanMotorsInit();
-
     transfer_remote_input_data();
 
 

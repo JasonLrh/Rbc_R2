@@ -40,7 +40,7 @@ typedef struct _remote_input_t
         float height;
         float len;
         uint8_t pState;
-        bool isSuckerOn;
+        uint8_t isSuckerOn;
     } puller;
 
 

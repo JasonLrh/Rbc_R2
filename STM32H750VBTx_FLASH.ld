@@ -103,9 +103,27 @@ SECTIONS
     KEEP (*(.init))
     KEEP (*(.fini))
 
+    /* *crtbegin.o(.ctors)
+    *crtbegin?.o(.ctors)
+    *(EXCLUDE_FILE(*crtend?.o *crtend.o) .ctors)
+    *(SORT(.ctors.*))
+    *(.ctors)
+
+    *crtbegin.o(.dtors)
+    *crtbegin?.o(.dtors)
+    *(EXCLUDE_FILE(*crtend?.o *crtend.o) .dtors)
+    *(SORT(.dtors.*))
+    *(.dtors)
+
+    *(.rodata*)
+
+    KEEP(*(.eh_frame*)) */
+
     . = ALIGN(4);
     _etext = .;        /* define a global symbols at end of code */
   } >FLASH
+
+  /* .socdata(NOLOAD): */
 
   /* Constant data goes into FLASH */
   .rodata :

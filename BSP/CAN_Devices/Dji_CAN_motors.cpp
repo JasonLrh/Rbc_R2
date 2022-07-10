@@ -49,11 +49,6 @@ c function part
 ********************************
 */
 
-void DjiCanMotorsInit(void){
-	// djiMotorGroupLowerId = new DjiMotorGroup(&hfdcan2, false);
-	// djiMotorGroupHigherId = new DjiMotorGroup(&hfdcan2, false);
-}
-
 void DjiCanMotorsForceStop(void){
 	
 	djiMotorGroupLowerId.stop();
