@@ -12,7 +12,8 @@
 
 
 
-class TemperBoard {
+class TemperBoard 
+{
 public:
     union temper_board_tx_msg_t {
         struct __packed{
@@ -27,7 +28,7 @@ public:
         }val;
         uint8_t raw[8];
     };
-    
+
     TemperBoard(FDCAN_HandleTypeDef *_hfdcan);
     
     bool set_angle_routate(float angle);
@@ -48,8 +49,5 @@ private:
 
     bsp_can_device_t can_devices;
 };
-
-
-
 
 #endif
