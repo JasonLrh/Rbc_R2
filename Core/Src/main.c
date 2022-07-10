@@ -188,7 +188,7 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+extern void JumpToBootLoader(void);
 /* USER CODE END 4 */
 
 /**
@@ -217,7 +217,6 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   * @brief  This function is executed in case of error occurrence.
   * @retval None
   */
-extern void JumpToBootLoader(void);
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */

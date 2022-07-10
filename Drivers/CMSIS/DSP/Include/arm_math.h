@@ -4952,8 +4952,8 @@ void arm_correlate_fast_q31(
       (S->A1 * S->state[0]) + (S->A2 * S->state[1]) + (S->state[2]);
 
     /* Update state */
-    S->state[1] = S->state[0]; // last_err err
-    S->state[0] = in;          // last_err
+    S->state[1] = S->state[0];
+    S->state[0] = in;
     S->state[2] = out;
 
     /* return to application */

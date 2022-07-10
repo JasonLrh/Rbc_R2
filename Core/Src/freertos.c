@@ -48,13 +48,13 @@
 
 /* USER CODE END Variables */
 osThreadId initMotorDirectHandle;
-uint32_t initMotorDirectBuffer[ 1024 ];
+uint32_t initMotorDirectBuffer[ 512 ];
 osStaticThreadDef_t initMotorDirectControlBlock;
 osThreadId MotorRoutineTaskHandle;
-uint32_t MotorRoutineTaskBuffer[ 1024 ];
+uint32_t MotorRoutineTaskBuffer[ 512 ];
 osStaticThreadDef_t MotorRoutineTaskControlBlock;
 osThreadId SerialCmdProcTaskHandle;
-uint32_t SerialCmdProcTaskBuffer[ 1024 ];
+uint32_t SerialCmdProcTaskBuffer[ 512 ];
 osStaticThreadDef_t SerialCmdProcTaskControlBlock;
 osMessageQId qMotorTimeupHandle;
 uint8_t qMotorTimeupBuffer[ 1 * sizeof( uint8_t ) ];
@@ -160,15 +160,15 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of initMotorDirect */
-  osThreadStaticDef(initMotorDirect, initMotorDirectionTaskFunc, osPriorityNormal, 0, 1024, initMotorDirectBuffer, &initMotorDirectControlBlock);
+  osThreadStaticDef(initMotorDirect, initMotorDirectionTaskFunc, osPriorityNormal, 0, 512, initMotorDirectBuffer, &initMotorDirectControlBlock);
   initMotorDirectHandle = osThreadCreate(osThread(initMotorDirect), NULL);
 
   /* definition and creation of MotorRoutineTask */
-  osThreadStaticDef(MotorRoutineTask, motorRoutineTaskFunc, osPriorityRealtime, 0, 1024, MotorRoutineTaskBuffer, &MotorRoutineTaskControlBlock);
+  osThreadStaticDef(MotorRoutineTask, motorRoutineTaskFunc, osPriorityRealtime, 0, 512, MotorRoutineTaskBuffer, &MotorRoutineTaskControlBlock);
   MotorRoutineTaskHandle = osThreadCreate(osThread(MotorRoutineTask), NULL);
 
   /* definition and creation of SerialCmdProcTask */
-  osThreadStaticDef(SerialCmdProcTask, serialCmdProcTaskFunc, osPriorityIdle, 0, 1024, SerialCmdProcTaskBuffer, &SerialCmdProcTaskControlBlock);
+  osThreadStaticDef(SerialCmdProcTask, serialCmdProcTaskFunc, osPriorityIdle, 0, 512, SerialCmdProcTaskBuffer, &SerialCmdProcTaskControlBlock);
   SerialCmdProcTaskHandle = osThreadCreate(osThread(SerialCmdProcTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
