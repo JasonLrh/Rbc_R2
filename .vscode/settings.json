@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "bsp_can.h": "c",
+        "fdcan.h": "c",
+        "dji_can_motors.h": "c",
+        "cmath": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "exception": "cpp",
+        "type_traits": "cpp",
+        "limits": "cpp",
+        "new": "cpp",
+        "typeinfo": "cpp"
+    },
+    "cortex-debug.registerUseNaturalFormat": false
+}
