@@ -1,5 +1,7 @@
 #include "F4_CAN_TempBoard.h"
 
+#include <string.h>
+
 #define COMMAND_PACK_ID 0x494
 #define RETURNS_PACK_ID 0x496
 
@@ -7,14 +9,14 @@
 #define H2_LIMIT 320.0
 
 
-
+TemperBoard temperBoard(&hfdcan1);
 
 bsp_can_rx_cb_ret_e __temper_board_rx_process(FDCAN_RxHeaderTypeDef *pRxHeader, uint8_t *pRxData){
     if (pRxHeader->Identifier != RETURNS_PACK_ID){
         return BSP_CAN_RX_CB_VALUE_INVALID;
     }
 
-    // TODO : temperboard rx process here
+    memcpy(&(temperBoard.state), pRxData, 8);
 
     return BSP_CAN_RX_CB_VALUE_VALID;
 }
@@ -37,7 +39,7 @@ bool TemperBoard::set_angle_routate(float angle){
         return false;
     }
 
-    info.val.a_r = (int16_t)(m);
+    info.val.a_r = (int8_t)(m);
     return true;
 }
 
@@ -48,7 +50,7 @@ bool TemperBoard::set_angle_expand(float angle){
         return false;
     }
 
-    info.val.a_e = (int16_t)(m);
+    info.val.a_e = (int8_t)(m);
     return true;
 }
 
@@ -74,11 +76,24 @@ bool TemperBoard::set_height_higher(float height){
     return true;
 }
 
-bool TemperBoard::set_pull(bool p){
+bool TemperBoard::set_sucker(bool on){
+    sucker_switch = (on == true)? SUCKER_STATE_ON : SUCKER_STATE_OFF;
+    info.val.pull_state &= 0x0f;
+    info.val.pull_state |= sucker_switch;
+    return true;
+}
 
-    info.val.pull = (p == true) ? 1 : 0;
+bool TemperBoard::set_puller(bool push){
+    info.val.pull_state = PULLER_STATE_TORQUE | sucker_switch;
+    info.val.pull_len = (push == true) ? 1 : 0;
     return true;
 
+}
+
+bool TemperBoard::set_puller_position(float len){
+    info.val.pull_state = PULLER_STATE_POSITION | sucker_switch;
+    info.val.pull_len = len < 0.f ?  0 : len > 240.f ? 240 : (uint8_t)(len);
+    return true;
 }
 
 void TemperBoard::output(void){

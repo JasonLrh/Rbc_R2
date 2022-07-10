@@ -22,7 +22,36 @@ typedef struct _motors_output_t {
     uint8_t type;
 } motors_output_t;
 
+typedef struct _remote_input_t
+{
+    struct {
+        float angle;
+        float speed;
+        uint8_t type;
+    } move;
+
+    struct {
+        float rotate_angle;
+        float expand_angle;
+        float height;
+    } zhua;
+
+    struct {
+        float height;
+        float len;
+        uint8_t pState;
+        bool isSuckerOn;
+    } puller;
+
+
+    
+
+
+}remote_input_t;
+
+
 extern motors_output_t motor_values;
+extern remote_input_t remote_input;
 
 void initMotorDirectionTaskFunc(void const * argument);
 void motorRoutineTaskFunc(void const * argument);

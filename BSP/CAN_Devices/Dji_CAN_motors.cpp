@@ -71,7 +71,6 @@ static bsp_can_rx_cb_ret_e __dji_motors_rx_process(FDCAN_RxHeaderTypeDef *pRxHea
 		return BSP_CAN_RX_CB_VALUE_INVALID;
 	}
 
-	// TODO add data to adsobhufwqaehniko;
 	gp = id > 3 ? &djiMotorGroupHigherId : &djiMotorGroupLowerId;
 
 	id = id > 3 ? id - 4 : id;

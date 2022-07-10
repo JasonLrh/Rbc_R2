@@ -2,13 +2,14 @@
 
 #include "CAN_Devices/Dji_CAN_motors.h"
 #include "CAN_Devices/Odrive_CAN_motors.h"
+#include "CAN_Devices/F4_CAN_TempBoard.h"
 #include "tim.h"
 
 extern DjiMotorGroup djiMotorGroupLowerId;
 // extern DjiMotorGroup djiMotorGroupHigherId;
 extern Odrive_CAN_motors odrv_motors;
-
 extern osMessageQId qMotorTimeupHandle;
+// extern TemperBoard temperBoard;
 
 
 motors_output_t motor_values;
@@ -24,15 +25,22 @@ static void motorTimeupCallback(TIM_HandleTypeDef * htim){
     
 }
 extern volatile float angle_test;
+extern void transfer_remote_input_data(void);
 void motorRoutineTaskFunc(void const * argument)
 {
-    // TODO
     char * __ptr;
-    uint32_t cnt;
+    // uint8_t cnt_12ms;
     // motor init
     DjiCanMotorsInit();
 
+    transfer_remote_input_data();
+
+
     motor_values.type = CTRL_TYPE_ANGLE;
+
+    motor_values.rudder_motors[0] = 0.f;
+    motor_values.rudder_motors[1] = 0.f;
+    motor_values.rudder_motors[2] = 0.f;
 
     motor_values.vel_motors[0] = 0.f;
     motor_values.vel_motors[1] = 0.f;
@@ -64,14 +72,13 @@ void motorRoutineTaskFunc(void const * argument)
             }
 
 
+
             // end process
-            cnt ++;
-            if (cnt > 200){
-                // ST_LOGI("m1 out : (%.2f,%.2f)\t(%.2f,%.2f)\t(%.2f,%.2f)",   djiMotorGroupLowerId.motor[0].angle, djiMotorGroupLowerId.motor[0].output,
-                //                                                             djiMotorGroupLowerId.motor[1].angle, djiMotorGroupLowerId.motor[1].output,
-                //                                                             djiMotorGroupLowerId.motor[2].angle, djiMotorGroupLowerId.motor[2].output);
-                cnt = 0;
-            }
+            // cnt_12ms ++;
+            // if (cnt_12ms > 4){
+            //     cnt_12ms = 0;
+                
+            // }
         }
     }
 }

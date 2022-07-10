@@ -210,7 +210,6 @@ uint8_t Odrive_CAN_motors::send_msg(uint8_t index, Odrive_Command cmd){
 }
 
 static bsp_can_rx_cb_ret_e __odrv_rx_process(FDCAN_RxHeaderTypeDef *pRxHeader, uint8_t *pRxData){
-	// TODO need to be overwrite
 	uint8_t odrv_id   = pRxHeader->Identifier & 0b11111100000;
 	uint8_t odrv_type = pRxHeader->Identifier & 0b00000011111;
 
