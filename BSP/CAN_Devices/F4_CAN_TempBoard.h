@@ -17,8 +17,8 @@ public:
 private:
     typedef union _temper_board_tx_msg_t{
         struct __packed{
-            int8_t a_e;
-            int8_t a_r;
+            int8_t a_e; // 180 -> 90
+            int8_t a_r; // -90 
             uint16_t pull;
             uint16_t h1;
             uint16_t h2;
