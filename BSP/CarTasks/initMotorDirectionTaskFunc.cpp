@@ -65,6 +65,8 @@ void initMotorDirectionTaskFunc(void const * argument){
 
     }
 
-    xTaskCreate(userInputTaskFunc, "UserInput", 1024, NULL, tskIDLE_PRIORITY, NULL);
+    ST_LOGD("create and delete task");
+
+    xTaskCreate(userInputTaskFunc, "UserInput", 1024, NULL, 5, NULL);
     vTaskDelete(NULL);
 }

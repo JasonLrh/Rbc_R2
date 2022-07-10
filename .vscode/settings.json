@@ -10,7 +10,8 @@
         "type_traits": "cpp",
         "limits": "cpp",
         "new": "cpp",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "*.tcc": "cpp"
     },
     "cortex-debug.registerUseNaturalFormat": false
 }

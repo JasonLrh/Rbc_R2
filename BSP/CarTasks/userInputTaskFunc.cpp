@@ -37,15 +37,15 @@ void transfer_remote_input_data(void){
             motor_values.vel_motors[i] = remote_input.move.speed; 
         }
     }
-    temperBoard.set_angle_routate(remote_input.zhua.rotate_angle);
-    temperBoard.set_angle_expand(remote_input.zhua.expand_angle);
-    temperBoard.set_height_lower(remote_input.zhua.height);
-    temperBoard.set_height_higher(remote_input.puller.height);
-    temperBoard.set_sucker(remote_input.puller.isSuckerOn == 0 ? false : true);
+    set_angle_routate(&temperBoard, remote_input.zhua.rotate_angle);
+    set_angle_expand(&temperBoard, remote_input.zhua.expand_angle);
+    set_height_lower(&temperBoard, remote_input.zhua.height);
+    set_height_higher(&temperBoard, remote_input.puller.height);
+    set_sucker(&temperBoard, remote_input.puller.isSuckerOn == 0 ? false : true);
     if (remote_input.puller.pState == PULLER_STATE_POSITION){
-        temperBoard.set_puller_position(remote_input.puller.len); 
+        set_puller_position(&temperBoard, remote_input.puller.len); 
     } else {
-        temperBoard.set_puller_force(remote_input.puller.len);
+        set_puller_force(&temperBoard, remote_input.puller.len);
     }
 
     // TODO: check validate here
@@ -59,10 +59,29 @@ void userInputTaskFunc(void * argument){
     remote_input.puller.height = 500;
     remote_input.zhua.rotate_angle = 45;
 
+    float def_angle = 45;
+
+    static uint8_t cnt = 0;
+
+
+    TemperBoard_init(&temperBoard, &hfdcan1);
+
+    ST_LOGI("User input task");
+
+
     for (;;){
+        remote_input.zhua.rotate_angle = def_angle;
         transfer_remote_input_data();
-        temperBoard.output();
+
+        TemperBoard_update(&temperBoard);
         vTaskDelay(12);
+
+        def_angle += 0.001;
+        cnt ++;
+        if (cnt > 500){
+            ST_LOGI("h");
+            cnt = 0;
+        }
     }
 
 }

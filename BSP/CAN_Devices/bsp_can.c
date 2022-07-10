@@ -70,7 +70,7 @@ void bsp_can_add_device(bsp_can_device_t * device){
 		root_dev = device;
 	} else {
 		while (p->next != NULL) {
-			p = root_dev->next;
+			p = p->next;
 		}
 
 		p->next = device;
