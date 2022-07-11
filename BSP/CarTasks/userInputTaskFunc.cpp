@@ -21,7 +21,7 @@ remote_input_t remote_input = {
 
 };
 
-extern TemperBoard temperBoard;
+TemperBoard temperBoard(&hfdcan1);
 
 const static float __car_rotate_angle[3] = {0, 60, 120};
 

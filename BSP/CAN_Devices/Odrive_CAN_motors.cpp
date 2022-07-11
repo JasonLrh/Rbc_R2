@@ -2,18 +2,8 @@
 #include "bsp_can.h"
 #include "string.h"
 
-
-static bsp_can_rx_cb_ret_e __odrv_rx_process(FDCAN_RxHeaderTypeDef *pRxHeader, uint8_t *pRxData);
-
-Odrive_CAN_motors odrv_motors(&hfdcan2);
-
-Odrive_CAN_motors::Odrive_CAN_motors(FDCAN_HandleTypeDef *_hfdcan){
-	can_odrv_devices.hfdcan = _hfdcan;
-    can_odrv_devices.rx_cb = __odrv_rx_process;
-    T_motor[0].odrive_set_axis.axis_node_id = (1 << 5);
-    T_motor[1].odrive_set_axis.axis_node_id = (2 << 5);
-    T_motor[2].odrive_set_axis.axis_node_id = (3 << 5);
-    bsp_can_add_device(&can_odrv_devices);
+Odrive_CAN_motors::Odrive_CAN_motors(FDCAN_HandleTypeDef *_hfdcan, uint8_t id):CanDevice(_hfdcan){
+    T_motor.odrive_set_axis.axis_node_id = (id << 5);
 }
 
 typedef union _float_to_uint8_t {
@@ -41,22 +31,22 @@ typedef union
 	} enc_info;
 } odrv_heartbeat_data_t;
 
-void Odrive_CAN_motors::setSpeed(uint8_t index, float speed){
-	// if (T_motor[index].odrive_set_axis.input_mode != ODRV_CONTROL_CTRLMODE_VELOCITY){
-	// 	T_motor[index].odrive_set_axis.control_mode = ODRV_CONTROL_INPUTMODE_VEL_RAMP;
-	// 	send_msg(index, MSG_SET_CONTROLLER_MODES);
-	// }
-    T_motor[index].odrive_set_axis.input_vel = speed;
-	send_msg(index, MSG_SET_INPUT_VEL);
+void Odrive_CAN_motors::setSpeed(float speed){
+	if (T_motor.odrive_set_axis.input_mode != ODRV_CONTROL_CTRLMODE_VELOCITY){
+		T_motor.odrive_set_axis.control_mode = ODRV_CONTROL_INPUTMODE_VEL_RAMP;
+		send_msg(MSG_SET_CONTROLLER_MODES);
+	}
+    T_motor.odrive_set_axis.input_vel = speed;
+	send_msg(MSG_SET_INPUT_VEL);
 }
 
-void Odrive_CAN_motors::setTorque(uint8_t index, float torque){
-	if (T_motor[index].odrive_set_axis.input_mode != ODRV_CONTROL_CTRLMODE_TORQUE){
-		T_motor[index].odrive_set_axis.control_mode = ODRV_CONTROL_INPUTMODE_TORQUE_RAMP;
-		send_msg(index, MSG_SET_CONTROLLER_MODES);
+void Odrive_CAN_motors::setTorque(float torque){
+	if (T_motor.odrive_set_axis.input_mode != ODRV_CONTROL_CTRLMODE_TORQUE){
+		T_motor.odrive_set_axis.control_mode = ODRV_CONTROL_INPUTMODE_TORQUE_RAMP;
+		send_msg(MSG_SET_CONTROLLER_MODES);
 	}
-    T_motor[index].odrive_set_axis.input_current = torque;
-	send_msg(index, MSG_SET_INPUT_CURRENT);
+    T_motor.odrive_set_axis.input_current = torque;
+	send_msg(MSG_SET_INPUT_CURRENT);
 }
 
 // void Odrive_CAN_motors::Tmotor_set_mode(Odrive_Controller_inputMode input_mode, Odrive_Controller_ctrlMode ctrl_mode){
@@ -83,10 +73,10 @@ void Odrive_CAN_motors::setTorque(uint8_t index, float torque){
 //     T_motor.odrive_set_axis.control_mode = ctrl_mode;
 // }
 
-uint8_t Odrive_CAN_motors::send_msg(uint8_t index, Odrive_Command cmd){
+uint8_t Odrive_CAN_motors::send_msg(Odrive_Command cmd){
     float_to_uint8_t pack;
 	FDCAN_TxHeaderTypeDef odrive_tx_header;
-	odrive_tx_header.Identifier = (T_motor[index].odrive_set_axis.axis_node_id) | (uint32_t)cmd;
+	odrive_tx_header.Identifier = (T_motor.odrive_set_axis.axis_node_id) | (uint32_t)cmd;
 	odrive_tx_header.IdType = FDCAN_STANDARD_ID;
 	odrive_tx_header.BitRateSwitch = FDCAN_BRS_OFF;
 	odrive_tx_header.FDFormat = FDCAN_CLASSIC_CAN;
@@ -94,7 +84,7 @@ uint8_t Odrive_CAN_motors::send_msg(uint8_t index, Odrive_Command cmd){
 	odrive_tx_header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
 	odrive_tx_header.MessageMarker = 0;
 
-    OdriveAxisSetState_t * odrv_set = &(T_motor[index].odrive_set_axis);
+    OdriveAxisSetState_t * odrv_set = &(T_motor.odrive_set_axis);
     switch(cmd) {
 		case MSG_ODRIVE_ESTOP:
 			/* TODO: Implement */
@@ -205,34 +195,30 @@ uint8_t Odrive_CAN_motors::send_msg(uint8_t index, Odrive_Command cmd){
 		default:
 			break;
 	}
-	bsp_can_send_message(&can_odrv_devices, &odrive_tx_header, (uint8_t *)pack.raw);
+	send_msg_raw(&odrive_tx_header, pack.raw);
     return 0;
 }
 
-static bsp_can_rx_cb_ret_e __odrv_rx_process(FDCAN_RxHeaderTypeDef *pRxHeader, uint8_t *pRxData){
-	uint8_t odrv_id   = pRxHeader->Identifier & 0b11111100000;
-	uint8_t odrv_type = pRxHeader->Identifier & 0b00000011111;
+CanDevice::bsp_can_rx_cb_ret_e Odrive_CAN_motors::rx_cb(FDCAN_RxHeaderTypeDef *pRxHeader, uint8_t *pRxData){
+	uint16_t odrv_id   = pRxHeader->Identifier & 0b11111100000;
+	uint16_t odrv_type = pRxHeader->Identifier & 0b00000011111;
 
 	Odrive_CAN_motors::Odrive_HeartBeat_ret_msg_t * msg = (Odrive_CAN_motors::Odrive_HeartBeat_ret_msg_t *)pRxData;
 	Odrive_CAN_motors::Odrive_HeartBeat_enc_est_t * est = (Odrive_CAN_motors::Odrive_HeartBeat_enc_est_t *)pRxData;
 	Odrive_CAN_motors::OdriveAxisGetState_t * get = NULL;
 
-	for (int i = 0; i < 3; i++){
-		if (odrv_motors.T_motor[i].odrive_set_axis.axis_node_id == odrv_id){
-			get = &(odrv_motors.T_motor[i].odrive_get_axis);
-		}
-	}
-
-	if (get == NULL){
+	if (T_motor.odrive_set_axis.axis_node_id == odrv_id) {
+		get = &(T_motor.odrive_get_axis);
+	} else {
 		return BSP_CAN_RX_CB_VALUE_INVALID;
 	}
-
 
 	switch (odrv_type)
 	{
 	case 0x001:
 		get->axis_error = msg->axis_err;
 		get->axis_current_state = msg->axis_state;
+		// TODO : error state callback here
 		break;
 	
 	case 0x009:

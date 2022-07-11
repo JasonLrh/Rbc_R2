@@ -5,9 +5,15 @@
 #include "CAN_Devices/F4_CAN_TempBoard.h"
 #include "tim.h"
 
-extern DjiMotorGroup djiMotorGroupLowerId;
-// extern DjiMotorGroup djiMotorGroupHigherId;
-extern Odrive_CAN_motors odrv_motors;
+DjiMotorGroup  djiMotorGroupLowerId(&hfdcan2, true);
+// DjiMotorGroup  djiMotorGroupHigherId(&hfdcan2, false);
+
+Odrive_CAN_motors odrv_motors[3]{
+    Odrive_CAN_motors(&hfdcan2,1),
+    Odrive_CAN_motors(&hfdcan2,2),
+    Odrive_CAN_motors(&hfdcan2,3)
+};
+
 extern osMessageQId qMotorTimeupHandle;
 // extern TemperBoard temperBoard;
 
@@ -15,7 +21,7 @@ extern osMessageQId qMotorTimeupHandle;
 motors_output_t motor_values;
 
 
-static void motorTimeupCallback(TIM_HandleTypeDef * htim){
+static void motorTimeupCallback(TIM_HandleTypeDef * htim) {
     char descript[2] = "n";
     // if (tim_queue_enable){
     //   // ST_LOGD("T");
@@ -26,8 +32,7 @@ static void motorTimeupCallback(TIM_HandleTypeDef * htim){
 }
 extern volatile float angle_test;
 extern void transfer_remote_input_data(void);
-void motorRoutineTaskFunc(void const * argument)
-{
+void motorRoutineTaskFunc(void const * argument) {
     char * __ptr;
     // uint8_t cnt_12ms;
     // motor init
@@ -48,13 +53,11 @@ void motorRoutineTaskFunc(void const * argument)
     // start tim
     HAL_TIM_RegisterCallback(&htim6, HAL_TIM_PERIOD_ELAPSED_CB_ID, motorTimeupCallback);
     HAL_TIM_Base_Start_IT(&htim6);
-    for (;;)
-    {
+    for (;;) {
         if (xQueueReceive(qMotorTimeupHandle, &__ptr, portMAX_DELAY) == pdTRUE)
         { // wait for timer semaphore
             // dji motor cal area
-            for (int i = 0; i < 3; i++)
-            {
+            for (int i = 0; i < 3; i++) {
                 djiMotorGroupLowerId.SetInput(i, motor_values.rudder_motors[i],
                     motor_values.type == CTRL_TYPE_ANGLE ? 
                     MotorPID::PENG_CTRL_TYPE_POSITION : MotorPID::PENG_CTRL_TYPE_SPEED);
@@ -66,7 +69,7 @@ void motorRoutineTaskFunc(void const * argument)
 
             // odrive motor cal area
             for (int i = 0; i < 3; i++){
-                odrv_motors.setSpeed(i, motor_values.vel_motors[i]);
+                odrv_motors[i].setSpeed(motor_values.vel_motors[i]);
             }
 
 

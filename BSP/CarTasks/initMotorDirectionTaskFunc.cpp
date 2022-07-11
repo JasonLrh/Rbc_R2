@@ -29,17 +29,17 @@ EventGroupHandle_t init_event_handle = xEventGroupCreate();
 float offset[3] = {28.f, -143.f, 145.f};
 
 
-void initMotorDirectionTaskFunc(void const * argument){
+void initMotorDirectionTaskFunc(void const * argument) {
     EventBits_t ret_val;
     float base_angle = 0.0;
-    for(int i = 0; i < 3; i++){
+    for(int i = 0; i < 3; i++) {
         motor_values.rudder_motors[i] = 0.0;
     }
     motor_values.type = CTRL_TYPE_ANGLE;
 
     ST_LOGI("init function start");
 
-    for(;;){
+    for(;;) {
         motor_values.type = CTRL_TYPE_ANGLE;
         for(int i = 0; i < 3; i++){
             int temp_val = HAL_GPIO_ReadPin(HALL_Port[i], HALL_PIN[i]);
@@ -59,7 +59,7 @@ void initMotorDirectionTaskFunc(void const * argument){
         base_angle += 0.9f;
         ret_val = xEventGroupWaitBits(init_event_handle, HALL1_OK|HALL2_OK|HALL3_OK, pdFAIL, pdTRUE, 40);
         
-        if(ret_val == ALL_OK){
+        if(ret_val == ALL_OK) {
             break;
         }
 

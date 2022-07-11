@@ -8,27 +8,18 @@
 #define H1_LIMIT 1500.0
 #define H2_LIMIT 1500.0
 
-
-TemperBoard temperBoard(&hfdcan1);
-
-static bsp_can_rx_cb_ret_e __temper_board_rx_process(FDCAN_RxHeaderTypeDef *pRxHeader, uint8_t *pRxData){
+CanDevice::bsp_can_rx_cb_ret_e TemperBoard::rx_cb(FDCAN_RxHeaderTypeDef *pRxHeader, uint8_t *pRxData){
     if (pRxHeader->Identifier != RETURNS_PACK_ID){
         return BSP_CAN_RX_CB_VALUE_INVALID;
     }
 
-    memcpy(&(temperBoard.state), pRxData, 8);
-    
-
+    memcpy(state.raw, pRxData, 8);
     return BSP_CAN_RX_CB_VALUE_VALID;
 }
 
 
-TemperBoard::TemperBoard(FDCAN_HandleTypeDef *_hfdcan){
-    can_devices.hfdcan = _hfdcan;
-    can_devices.rx_cb = __temper_board_rx_process;
+TemperBoard::TemperBoard(FDCAN_HandleTypeDef *_hfdcan):CanDevice(_hfdcan){
     sucker_switch = SUCKER_STATE_OFF;
-    bsp_can_add_device(&can_devices);
-
     // for (int i = 0; i <  8; i++){
     //     info.raw[i] = 0;
     // }
@@ -97,5 +88,5 @@ bool TemperBoard::set_puller_position(float len){
 }
 
 void TemperBoard::output(void){
-    bsp_can_send_message8(&can_devices, COMMAND_PACK_ID, info.raw);
+    send_msg8(COMMAND_PACK_ID, info.raw);
 }

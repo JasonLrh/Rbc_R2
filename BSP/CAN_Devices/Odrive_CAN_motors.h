@@ -2,7 +2,7 @@
 #define __BSP_CAN_H
 #include "bsp_can.h"
 
-class Odrive_CAN_motors
+class Odrive_CAN_motors: public CanDevice
 {
 public:
     enum Odrive_ID_e
@@ -117,16 +117,16 @@ public:
     };
     
 
-    Odrive_CAN_motors(FDCAN_HandleTypeDef *_hfdcan);
+    Odrive_CAN_motors(FDCAN_HandleTypeDef *_hfdcan, uint8_t id);
     // void Tmotor_set_mode(Odrive_Controller_inputMode imode, Odrive_Controller_ctrlMode cmode);
-    void setSpeed(uint8_t index, float speed);
-    void setTorque(uint8_t index, float torque);
+    void setSpeed(float speed);
+    void setTorque(float torque);
 
-    Odrive_motor_t T_motor[3];
+    Odrive_motor_t T_motor;
 
 private:
-    uint8_t send_msg(uint8_t index, Odrive_Command cmd);
-    bsp_can_device_t can_odrv_devices;
+    uint8_t send_msg(Odrive_Command cmd);
+    bsp_can_rx_cb_ret_e rx_cb(FDCAN_RxHeaderTypeDef *pRxHeader, uint8_t *pRxData) override;
 };
 
 #endif

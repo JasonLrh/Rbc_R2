@@ -12,7 +12,7 @@
 
 
 
-class TemperBoard 
+class TemperBoard: public CanDevice
 {
 public:
     union temper_board_tx_msg_t {
@@ -47,7 +47,7 @@ private:
     uint32_t sucker_switch = SUCKER_STATE_OFF;
     temper_board_tx_msg_t info;
 
-    bsp_can_device_t can_devices;
+    bsp_can_rx_cb_ret_e rx_cb(FDCAN_RxHeaderTypeDef *pRxHeader, uint8_t *pRxData) override;
 };
 
 #endif
