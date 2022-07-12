@@ -1,6 +1,7 @@
 #include "CarTasks.h"
 
 #include "usart.h"
+#include "cJSON.h"
 
 extern osMessageQId qSerialPackHandle;
 
@@ -10,16 +11,13 @@ static uint8_t *uart_point_buff = uart_cmd_buff[0];
 
 void cmd_server_rx_callback(UART_HandleTypeDef *huart, uint16_t pos)
 {
-
     // ! clean DCache to sync data space
     // SCB_CleanDCache_by_Addr((uint32_t *)uart_point_buff + pos, 1);
     // SCB_InvalidateDCache_by_Addr((uint32_t *)uart_point_buff, pos);
     // SCB_InvalidateDCache_by_Addr(uart_point_buff, (pos / 32 + 1) * 32 );
     uart_point_buff[pos] = '\0';
     // SCB_CleanDCache_by_Addr((uint32_t *)(uart_point_buff + pos), 1);
-
     xQueueSendFromISR(qSerialPackHandle, (void *)&uart_point_buff, NULL);
-
     // ! memory management
     if (uart_point_buff == uart_cmd_buff[0])
     {
@@ -47,6 +45,28 @@ static void process_input(const char * cmd, uint16_t pos){
     }
 }
 
+extern remote_input_t remote_input;
+static void process_json(const char * cmd){
+    cJSON * root = cJSON_Parse(cmd);
+
+    cJSON * subNode = cJSON_GetObjectItem(root, "m");
+    for (int i = 0; i < 2; i++){
+        cJSON_GetNumberValue( cJSON_GetArrayItem(subNode, i) );
+    }
+
+    subNode = cJSON_GetObjectItem(root, "f");
+    remote_input.zhua.height = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "h") );
+    remote_input.zhua.rotate_angle = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "r") );
+    remote_input.zhua.expand_angle = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "e") );
+
+    subNode = cJSON_GetObjectItem(root, "s");
+    remote_input.puller.height = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "h") );
+    remote_input.puller.len = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "x") );
+    remote_input.puller.isSuckerOn = (cJSON_IsTrue(cJSON_GetObjectItem(subNode, "isSuck")) == cJSON_True)? true : false ;
+
+    cJSON_Delete(root);
+}
+
 void serialCmdProcTaskFunc(void const * argument) {
     char *dog_cmd_buff = NULL;
     ST_LOGI("CMD server start");
@@ -63,7 +83,16 @@ void serialCmdProcTaskFunc(void const * argument) {
             }
             if (pos > 0) {
                 // ! cmd process code 
-                process_input(dog_cmd_buff, pos);
+                switch (dog_cmd_buff[0])
+                {
+                case 'J':
+                    process_json(dog_cmd_buff + 1);
+                    break;
+                
+                default:
+                    process_input(dog_cmd_buff, pos);
+                    break;
+                }
             }
         }
     }

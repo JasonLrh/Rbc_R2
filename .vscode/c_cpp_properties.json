@@ -5,14 +5,12 @@
             "includePath": [
                 "Core/Inc",
                 "BSP",
-                // "BSP/CAN_Devices",
-                // "BSP/CarTasks",
-                // "BSP/ControllerPID",
                 "Drivers/STM32H7xx_HAL_Driver/Inc",
                 "Drivers/STM32H7xx_HAL_Driver/Inc/Legacy",
                 "Middlewares/Third_Party/FreeRTOS/Source/include",
                 "Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS",
                 "Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F",
+                "Middlewares/cJson",
                 "Drivers/CMSIS/Device/ST/STM32H7xx/Include",
                 "Drivers/CMSIS/Include",
                 "Drivers/CMSIS/DSP/Include"

@@ -24,6 +24,7 @@ uint16_t HALL_PIN[3] = {HALL_INPUT_1_Pin,
 int init_status[3] = {1, 1, 1};
 
 extern DjiMotorGroup  djiMotorGroupLowerId;
+extern motors_output_t motor_values;
 
 EventGroupHandle_t init_event_handle = xEventGroupCreate();
 float offset[3] = {28.f, -143.f, 145.f};

@@ -43,15 +43,10 @@ typedef struct _remote_input_t
         uint8_t isSuckerOn;
     } puller;
 
-
-    
-
-
 }remote_input_t;
 
 
-extern motors_output_t motor_values;
-extern remote_input_t remote_input;
+
 
 void initMotorDirectionTaskFunc(void const * argument);
 void motorRoutineTaskFunc(void const * argument);
