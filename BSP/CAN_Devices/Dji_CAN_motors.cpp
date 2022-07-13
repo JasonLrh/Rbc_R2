@@ -34,6 +34,14 @@ typedef enum
 } dji_motors_can_id_e;
 
 
+/* 
+********************************
+global variabal
+********************************
+*/
+DjiMotorGroup  djiMotorGroupLowerId(&hfdcan2, true);
+DjiMotorGroup  djiMotorGroupHigherId(&hfdcan2, false);
+
 
 /* 
 ********************************
@@ -41,22 +49,28 @@ c function part
 ********************************
 */
 
-// rx process
-CanDevice::bsp_can_rx_cb_ret_e DjiMotorGroup::rx_cb(FDCAN_RxHeaderTypeDef *pRxHeader, uint8_t *pRxData){
+void DjiCanMotorsForceStop(void){
+	
+	djiMotorGroupLowerId.stop();
+	djiMotorGroupHigherId.stop();
+}
 
+// rx process
+static bsp_can_rx_cb_ret_e __dji_motors_rx_process(FDCAN_RxHeaderTypeDef *pRxHeader, uint8_t *pRxData)
+{
 	int32_t id = pRxHeader->Identifier - CAN_DJI_M1_ID;
-	// DjiMotorGroup * gp;
+	DjiMotorGroup * gp;
 
 	if (id > 7 || id < 0)
 	{
 		return BSP_CAN_RX_CB_VALUE_INVALID;
 	}
 
-	// gp = id > 3 ? &djiMotorGroupHigherId : &djiMotorGroupLowerId;
+	gp = id > 3 ? &djiMotorGroupHigherId : &djiMotorGroupLowerId;
 
 	id = id > 3 ? id - 4 : id;
 
-	DjiMotor::motor_measure_t * state = &(motor[id].currentState);
+	DjiMotor::motor_measure_t * state = &(gp->motor[id].currentState);
 
 	get_motor_measure(state, pRxData);
 
@@ -65,7 +79,7 @@ CanDevice::bsp_can_rx_cb_ret_e DjiMotorGroup::rx_cb(FDCAN_RxHeaderTypeDef *pRxHe
 	else if(state->ecd - state->last_ecd < -4096)
 		state->circle++;
 	
-	motor[id].pid.update_state(state->speed_rpm * 1.f, motor[id].get_angle(true));
+	gp->motor[id].pid.update_state(state->speed_rpm * 1.f, gp->motor[id].get_angle(true));
 	
 	return BSP_CAN_RX_CB_VALUE_VALID;
 }
@@ -76,9 +90,12 @@ c++ class: motor group part
 ********************************
 */
 
-DjiMotorGroup::DjiMotorGroup(FDCAN_HandleTypeDef *_hfdcan, bool _isLowerIdentityGroup):CanDevice(_hfdcan)
+DjiMotorGroup::DjiMotorGroup(FDCAN_HandleTypeDef *_hfdcan, bool _isLowerIdentityGroup)
 {
+	can_devices.hfdcan = _hfdcan;
+	can_devices.rx_cb = __dji_motors_rx_process;
 	ID_tx = _isLowerIdentityGroup == true ? CAN_DJI_L4ALL_ID : CAN_DJI_H4ALL_ID;
+	bsp_can_add_device(&can_devices);
 }
 
 void DjiMotorGroup::SetInput(uint8_t id, float _input, MotorPID::peng_ctrl_type_t _type){
@@ -122,7 +139,8 @@ void DjiMotorGroup::setCurrent(int16_t val[4]){
 	chassis_can_send_data[6] = val[3] >> 8;
 	chassis_can_send_data[7] = val[3];
 
-	send_msg8(ID_tx, chassis_can_send_data);
+	bsp_can_send_message8(&can_devices, ID_tx, chassis_can_send_data);
+	
 }
 
 void DjiMotorGroup::stop(void){

@@ -37,11 +37,14 @@ public:
     bool is_update = false;
     MotorPID pid;
 private:
+    
+
+
 };
 
 
 
-class DjiMotorGroup: public CanDevice{
+class DjiMotorGroup {
 public:
     DjiMotorGroup(FDCAN_HandleTypeDef * _hfdcan, bool _isLowerIdentityGroup);
     
@@ -55,8 +58,8 @@ public:
 private:
     uint32_t ID_tx;
     bool is_force_stop = false;
-    void setCurrent(int16_t val[4]);
-    bsp_can_rx_cb_ret_e rx_cb(FDCAN_RxHeaderTypeDef *pRxHeader, uint8_t *pRxData) override;
+    void setCurrent(int16_t val[4]); 
+    bsp_can_device_t can_devices;
 };
 
 

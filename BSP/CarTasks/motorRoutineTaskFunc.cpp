@@ -5,16 +5,10 @@
 #include "CAN_Devices/F4_CAN_TempBoard.h"
 #include "tim.h"
 
-DjiMotorGroup  djiMotorGroupLowerId(&hfdcan2, true);
-// DjiMotorGroup  djiMotorGroupHigherId(&hfdcan2, false);
-
-Odrive_CAN_motors odrv_motors[3]{
-    Odrive_CAN_motors(&hfdcan2,1),
-    Odrive_CAN_motors(&hfdcan2,2),
-    Odrive_CAN_motors(&hfdcan2,3)
-};
-
-TemperBoard temperBoard(&hfdcan1);
+extern DjiMotorGroup djiMotorGroupLowerId;
+// extern DjiMotorGroup djiMotorGroupHigherId;
+extern Odrive_CAN_motors odrv_motors;
+extern TemperBoard temperBoard;
 
 extern osMessageQId qMotorTimeupHandle;
 // extern TemperBoard temperBoard;
@@ -114,7 +108,7 @@ void motorRoutineTaskFunc(void const * argument) {
 
             // odrive motor cal area
             for (int i = 0; i < 3; i++){
-                odrv_motors[i].setSpeed(motor_values.vel_motors[i]);
+                odrv_motors.setSpeed(i ,motor_values.vel_motors[i]);
             }
 
             // end process

@@ -3,7 +3,8 @@
 #define BSP_CAN_LOG_Error(format)  LOG_COLOR_E "[bsp_can.c]" LOG_RESET_COLOR ":\t" format "\n"
 #define BSP_CAN_LOGE(format, ...) uart_printf(BSP_CAN_LOG_Error(format), ##__VA_ARGS__)
 
-static CanDevice * root_dev = NULL;
+
+static bsp_can_device_t * root_dev = NULL;
 
 static inline void __bsp_fdcan_send(FDCAN_HandleTypeDef *hfdcan, FDCAN_TxHeaderTypeDef * head, uint8_t *pTxData){
 	uint32_t freeLevel;
@@ -39,7 +40,7 @@ static inline void __bsp_fdcan_send8(FDCAN_HandleTypeDef *hfdcan, uint32_t id, u
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
 	FDCAN_RxHeaderTypeDef rx_header;
-	CanDevice * dev = root_dev;
+	bsp_can_device_t const * dev = root_dev;
 	uint8_t __aligned(4) rx_data[8];
 
 
@@ -47,7 +48,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 		HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &rx_header, rx_data);
 		dev = root_dev;
 		while (dev != NULL){
-			if (dev->rx_cb(&rx_header, rx_data) == CanDevice::BSP_CAN_RX_CB_VALUE_VALID){
+			if (dev->rx_cb(&rx_header, rx_data) == BSP_CAN_RX_CB_VALUE_VALID){
 				break;
 			}
 			dev = dev->next;
@@ -56,37 +57,38 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 
 	assert_param(HAL_FDCAN_ActivateNotification(hfdcan, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) == HAL_OK);
 }
-/*
-C++ area
-*/
 
 
-CanDevice::CanDevice(FDCAN_HandleTypeDef * _hfdcan){
-	hfdcan = _hfdcan;
-
-	// add to bus
-	CanDevice * p = root_dev;
-
-	this->next = NULL;
+void bsp_can_add_device(bsp_can_device_t * device){
+	bsp_can_device_t * p = root_dev;
+	if (device == NULL){
+		return;
+	}
+	device->next = NULL;
 
 	if (root_dev == NULL){
-		root_dev = this;
+		root_dev = device;
 	} else {
 		while (p->next != NULL) {
 			p = p->next;
 		}
-		p->next = this;
+
+		p->next = device;
+
 	}
 }
 
-CanDevice::~CanDevice(){
-	CanDevice * p = root_dev;
+void bsp_can_delete_device(const bsp_can_device_t * device){
+	bsp_can_device_t * p = root_dev;
+	if (device == NULL){
+		return;
+	}
 
-	if (root_dev == this){
+	if (root_dev == device){
 		root_dev = root_dev->next;
 	} else {
 		while (p != NULL){
-			if (p->next == this) {
+			if (p->next == device) {
 				p = p->next->next;
 			}
 			p = p->next;
@@ -94,10 +96,11 @@ CanDevice::~CanDevice(){
 	}
 }
 
-void CanDevice::send_msg8(uint32_t id, uint8_t *data){
-	__bsp_fdcan_send8(hfdcan, id, data);
+
+void bsp_can_send_message(bsp_can_device_t * dev, FDCAN_TxHeaderTypeDef * head, uint8_t *data){
+	__bsp_fdcan_send(dev->hfdcan, head, data);
 }
 
-void CanDevice::send_msg_raw(FDCAN_TxHeaderTypeDef * head, uint8_t *data){
-	__bsp_fdcan_send(hfdcan, head, data);
+void bsp_can_send_message8(bsp_can_device_t * dev, uint32_t id, uint8_t *data){
+	__bsp_fdcan_send8(dev->hfdcan, id, data);
 }
