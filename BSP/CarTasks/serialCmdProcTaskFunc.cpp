@@ -31,7 +31,8 @@ void cmd_server_rx_callback(UART_HandleTypeDef *huart, uint16_t pos)
 }
 
 void cmd_server_error_callback(UART_HandleTypeDef *huart){
-    ST_LOGE("Uart Error");
+    ST_LOGE("Uart(%d) Error: %8x", huart->Instance == UART8 ? 8 : -1, huart->ErrorCode);
+    Error_Handler();
 }
 
 void cmd_server_start(UART_HandleTypeDef *huart)
@@ -80,7 +81,7 @@ void serialCmdProcTaskFunc(void const * argument) {
         dog_cmd_buff = NULL;
         if (xQueueReceive(qSerialPackHandle, &(dog_cmd_buff), portMAX_DELAY) == pdPASS) {
             uint16_t pos;
-            // ST_LOGI("$ %s", dog_cmd_buff);
+            ST_LOGI("$ rec");
             for (pos = 0; pos < UART_BUFF_SIZE; pos++) {
                 if (dog_cmd_buff[pos] == '\0') {
                     break;

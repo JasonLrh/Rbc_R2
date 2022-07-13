@@ -116,7 +116,7 @@ void motorRoutineTaskFunc(void const * argument) {
             if (cnt_12ms >= 4){
                 cnt_12ms = 0;
                 if (is_init_ok != 0){
-                    // transfer_remote_input_data();
+                    transfer_remote_input_data();
                 }
                 temperBoard.output();
             }

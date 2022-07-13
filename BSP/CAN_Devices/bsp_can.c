@@ -9,16 +9,16 @@ static bsp_can_device_t * root_dev = NULL;
 static inline void __bsp_fdcan_send(FDCAN_HandleTypeDef *hfdcan, FDCAN_TxHeaderTypeDef * head, uint8_t *pTxData){
 	uint32_t freeLevel;
 	
-	if (HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, head, pTxData) != HAL_OK){
-		ST_LOGE("Ret Error");
-		Error_Handler();
-	}
+	// if (HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, head, pTxData) != HAL_OK){
+	// 	ST_LOGE("Ret Error");
+	// 	Error_Handler();
+	// }
 	
-	freeLevel = HAL_FDCAN_GetTxFifoFreeLevel(hfdcan);
-	if (freeLevel == 0){
-		BSP_CAN_LOGE("hfdcan%d no free fifo", hfdcan == &hfdcan1 ? 1 : 2);
-		Error_Handler();
-	}
+	// freeLevel = HAL_FDCAN_GetTxFifoFreeLevel(hfdcan);
+	// if (freeLevel == 0){
+	// 	BSP_CAN_LOGE("hfdcan%d no free fifo", hfdcan == &hfdcan1 ? 1 : 2);
+	// 	Error_Handler();
+	// }
 }
 
 static inline void __bsp_fdcan_send8(FDCAN_HandleTypeDef *hfdcan, uint32_t id, uint8_t *pTxData){
