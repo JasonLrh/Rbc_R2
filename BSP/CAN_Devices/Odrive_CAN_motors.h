@@ -5,13 +5,6 @@
 class Odrive_CAN_motors: public CanDevice
 {
 public:
-    enum Odrive_ID_e
-    {
-        AXIS0_NODE_ID = 1 << 5,
-        AXIS1_NODE_ID = 2 << 5,
-        AXIS2_NODE_ID = 3 << 5,
-    };
-
     enum Odrive_Controller_inputMode
     {
         ODRV_CONTROL_INPUTMODE_DISABLE = 0,

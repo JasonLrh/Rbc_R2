@@ -3,6 +3,7 @@
 #include "CAN_Devices/Dji_CAN_motors.h"
 #include "CAN_Devices/Odrive_CAN_motors.h"
 #include "main.h"
+#include "cmsis_os.h"
 
 GPIO_TypeDef *HALL_Port[3]= {GPIOA,
                              GPIOA,
@@ -13,9 +14,10 @@ enum _init_flags{
     HALL2_OK = 1 << 1ul,
     HALL3_OK = 1 << 0ul,
 }init_flags;
+
 #define LOW_LEVEL 0
 #define HALL_OK 1
-#define ALL_OK 0b111
+#define ALL_OK 0b111 
 
 uint16_t HALL_PIN[3] = {HALL_INPUT_1_Pin, 
                         HALL_INPUT_2_Pin, 
@@ -28,6 +30,7 @@ extern motors_output_t motor_values;
 
 EventGroupHandle_t init_event_handle = xEventGroupCreate();
 float offset[3] = {28.f, -143.f, 145.f};
+uint8_t is_init_ok = 0;
 
 
 void initMotorDirectionTaskFunc(void const * argument) {
@@ -69,5 +72,6 @@ void initMotorDirectionTaskFunc(void const * argument) {
     ST_LOGD("create and delete task");
 
     xTaskCreate(userInputTaskFunc, "UserInput", 1024, NULL, 5, NULL);
+    is_init_ok = 1;
     vTaskDelete(NULL);
 }

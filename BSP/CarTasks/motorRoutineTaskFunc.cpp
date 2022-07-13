@@ -78,6 +78,7 @@ static void motorTimeupCallback(TIM_HandleTypeDef * htim) {
     
 }
 extern volatile float angle_test;
+extern uint8_t is_init_ok;
 
 void motorRoutineTaskFunc(void const * argument) {
     char * __ptr;
@@ -108,11 +109,8 @@ void motorRoutineTaskFunc(void const * argument) {
                 djiMotorGroupLowerId.SetInput(i, motor_values.rudder_motors[i],
                     motor_values.type == CTRL_TYPE_ANGLE ? 
                     MotorPID::PENG_CTRL_TYPE_POSITION : MotorPID::PENG_CTRL_TYPE_SPEED);
-                // djiMotorGroupHigherId.SetInput(i, 0, 0);
             }
             djiMotorGroupLowerId.output();
-            // djiMotorGroupLowerId.output();
-            // djiMotorGroupHigherId->output();
 
             // odrive motor cal area
             for (int i = 0; i < 3; i++){
@@ -121,9 +119,11 @@ void motorRoutineTaskFunc(void const * argument) {
 
             // end process
             cnt_12ms ++;
-            if (cnt_12ms > 4){
+            if (cnt_12ms >= 4){
                 cnt_12ms = 0;
-                transfer_remote_input_data();
+                if (is_init_ok != 0){
+                    // transfer_remote_input_data();
+                }
                 temperBoard.output();
             }
         }

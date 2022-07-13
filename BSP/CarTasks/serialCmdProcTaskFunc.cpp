@@ -30,9 +30,14 @@ void cmd_server_rx_callback(UART_HandleTypeDef *huart, uint16_t pos)
     HAL_UARTEx_ReceiveToIdle_DMA(huart, (uint8_t *)uart_point_buff, UART_BUFF_SIZE);
 }
 
+void cmd_server_error_callback(UART_HandleTypeDef *huart){
+    ST_LOGE("Uart Error");
+}
+
 void cmd_server_start(UART_HandleTypeDef *huart)
 {
     assert_param(HAL_UART_RegisterRxEventCallback(huart, cmd_server_rx_callback) == HAL_OK);
+    assert_param(HAL_UART_RegisterCallback(huart, HAL_UART_ERROR_CB_ID, cmd_server_error_callback) == HAL_OK);
     assert_param(HAL_UARTEx_ReceiveToIdle_DMA(huart, (uint8_t *)uart_point_buff, UART_BUFF_SIZE) == HAL_OK);
 }
 volatile float angle_test = 0.f;
@@ -75,7 +80,7 @@ void serialCmdProcTaskFunc(void const * argument) {
         dog_cmd_buff = NULL;
         if (xQueueReceive(qSerialPackHandle, &(dog_cmd_buff), portMAX_DELAY) == pdPASS) {
             uint16_t pos;
-            ST_LOGI("$ %s", dog_cmd_buff);
+            // ST_LOGI("$ %s", dog_cmd_buff);
             for (pos = 0; pos < UART_BUFF_SIZE; pos++) {
                 if (dog_cmd_buff[pos] == '\0') {
                     break;
@@ -87,6 +92,7 @@ void serialCmdProcTaskFunc(void const * argument) {
                 {
                 case 'J':
                     process_json(dog_cmd_buff + 1);
+                    // ST_LOGI("Height:%.2f", remote_input.zhua.height);
                     break;
                 
                 default:

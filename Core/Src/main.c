@@ -226,9 +226,10 @@ void Error_Handler(void)
   __disable_irq();
   while (1)
   {
-    if (HAL_GPIO_ReadPin(APP_BOOT_GPIO_Port, APP_BOOT_Pin) == GPIO_PIN_SET){
-      JumpToBootLoader();
-    }
+    ST_LOGE("Jump Fail");
+    // if (HAL_GPIO_ReadPin(APP_BOOT_GPIO_Port, APP_BOOT_Pin) == GPIO_PIN_SET){
+    //   JumpToBootLoader();
+    // }
   }
   /* USER CODE END Error_Handler_Debug */
 }

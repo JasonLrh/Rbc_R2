@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
+from time import time
 import serial
 from serial.threaded import LineReader, ReaderThread
 
 import sys
 import json
+
+from time import sleep
 
 
 class PrintLines(LineReader):
@@ -12,7 +15,9 @@ class PrintLines(LineReader):
         super(PrintLines, self).connection_made(transport)
 
     def handle_line(self, data):
-        print(data, flush=True)
+        print("$ rx: " + data, flush=True)
+        if data == "PER":
+            exit(0)
 
     def connection_lost(self, exc):
         if exc:
@@ -44,12 +49,16 @@ if __name__ == '__main__':
 
     ser = MyReaderThread(com, PrintLines)
     ser.start()
+    h = 0
     while True:
+        h += 0.5
         try:
             k = input()
-            # print("[input]", k)
-            k += '\n'
+            # # print("[input]", k)
+            # k += '\n'
+            # k = """J{"m":[0,0],"f":{"h":%d,"r":45,"e":180},"s":{"h":500,"x":0,"isSuck":false}}"""%(h)
             com.write(k.encode())
+            # sleep(0.012)
         except KeyboardInterrupt as e:
             print("EXIT KEY TRIGGER")
             ser.stop()
