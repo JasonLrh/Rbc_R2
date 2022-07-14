@@ -41,15 +41,16 @@ void cmd_server_start(UART_HandleTypeDef *huart)
     assert_param(HAL_UART_RegisterCallback(huart, HAL_UART_ERROR_CB_ID, cmd_server_error_callback) == HAL_OK);
     assert_param(HAL_UARTEx_ReceiveToIdle_DMA(huart, (uint8_t *)uart_point_buff, UART_BUFF_SIZE) == HAL_OK);
 }
-volatile float angle_test = 0.f;
-static void process_input(const char * cmd, uint16_t pos){
-    float a;
-    sscanf(cmd, "%f", &a);
-    if (fabsf(a) < 180){
-        angle_test = a;
-        ST_LOGI("update angle to : %.2f", angle_test);
-    }
-}
+
+// volatile float angle_test = 0.f;
+// static void process_input(const char * cmd, uint16_t pos){
+//     float a;
+//     sscanf(cmd, "%f", &a);
+//     if (fabsf(a) < 180){
+//         angle_test = a;
+//         ST_LOGI("update angle to : %.2f", angle_test);
+//     }
+// }
 
 extern remote_input_t remote_input;
 static void process_json(const char * cmd){
@@ -64,6 +65,7 @@ static void process_json(const char * cmd){
     // }
     remote_input.move.angle = cJSON_GetNumberValue( cJSON_GetArrayItem(subNode, 0) );
     remote_input.move.speed = cJSON_GetNumberValue( cJSON_GetArrayItem(subNode, 1) );
+    remote_input.move.type  = cJSON_GetNumberValue( cJSON_GetArrayItem(subNode, 2) );
     
 
     subNode = cJSON_GetObjectItem(root, "f");

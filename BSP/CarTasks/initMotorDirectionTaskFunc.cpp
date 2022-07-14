@@ -52,9 +52,9 @@ void initMotorDirectionTaskFunc(void const * argument) {
                 init_status[i] = LOW_LEVEL;
                 xEventGroupSetBits(init_event_handle, HALL_OK << i);
                 djiMotorGroupLowerId.motor[i].base_angle = base_angle + offset[i];
-                motor_values.rudder_motors[i] = 90;
+                motor_values.rudder_motors[i] = 0;
             } else if (init_status[i] == LOW_LEVEL) {
-                motor_values.rudder_motors[i] = 90;
+                motor_values.rudder_motors[i] = 0;
             } else {
                 motor_values.rudder_motors[i] = base_angle;
             }

@@ -17,7 +17,7 @@ extern osMessageQId qMotorTimeupHandle;
 motors_output_t motor_values;
 remote_input_t remote_input = {
     .move = {
-        .angle = 90.f,
+        .angle = 0.f,
         .speed = 0.f,
         .type = CTRL_TYPE_SPEED
     },
@@ -40,8 +40,10 @@ static void transfer_remote_input_data(void){
             motor_values.vel_motors[i] = remote_input.move.speed; 
         }
     } else {
+        motor_values.rudder_motors[0] =   0.f;
+        motor_values.rudder_motors[1] =   120.f;
+        motor_values.rudder_motors[2] = - 120.f;
         for (int i = 0; i < 3; i++){
-            motor_values.rudder_motors[i] = 60.f * i; // TODO: check rotate angle and direction here
             motor_values.vel_motors[i] = remote_input.move.speed; 
         }
     }

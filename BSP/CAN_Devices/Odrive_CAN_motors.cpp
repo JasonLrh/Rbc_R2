@@ -42,21 +42,36 @@ typedef union
 } odrv_heartbeat_data_t;
 
 void Odrive_CAN_motors::setSpeed(uint8_t index, float speed){
-	// if (T_motor[index].odrive_set_axis.input_mode != ODRV_CONTROL_CTRLMODE_VELOCITY){
-	// 	T_motor[index].odrive_set_axis.control_mode = ODRV_CONTROL_INPUTMODE_VEL_RAMP;
-	// 	send_msg(index, MSG_SET_CONTROLLER_MODES);
-	// }
-    T_motor[index].odrive_set_axis.input_vel = speed;
-	send_msg(index, MSG_SET_INPUT_VEL);
+	if (T_motor[index].odrive_set_axis.input_mode != ODRV_CONTROL_CTRLMODE_VELOCITY){
+		T_motor[index].odrive_set_axis.control_mode = ODRV_CONTROL_CTRLMODE_VELOCITY;
+		T_motor[index].odrive_set_axis.input_current = ODRV_CONTROL_INPUTMODE_VEL_RAMP;
+		send_msg(index, MSG_SET_CONTROLLER_MODES);
+	} else {
+		T_motor[index].odrive_set_axis.input_vel = speed;
+		send_msg(index, MSG_SET_INPUT_VEL);
+	}
 }
 
 void Odrive_CAN_motors::setTorque(uint8_t index, float torque){
 	if (T_motor[index].odrive_set_axis.input_mode != ODRV_CONTROL_CTRLMODE_TORQUE){
-		T_motor[index].odrive_set_axis.control_mode = ODRV_CONTROL_INPUTMODE_TORQUE_RAMP;
+		T_motor[index].odrive_set_axis.control_mode = ODRV_CONTROL_CTRLMODE_TORQUE;
+		T_motor[index].odrive_set_axis.input_current = ODRV_CONTROL_INPUTMODE_PASSTHROUGH;
 		send_msg(index, MSG_SET_CONTROLLER_MODES);
+	} else {
+		T_motor[index].odrive_set_axis.input_current = torque;
+		send_msg(index, MSG_SET_INPUT_CURRENT);
 	}
-    T_motor[index].odrive_set_axis.input_current = torque;
-	send_msg(index, MSG_SET_INPUT_CURRENT);
+}
+
+void Odrive_CAN_motors::setPos(uint8_t index, float pos){
+	if (T_motor[index].odrive_set_axis.input_mode != ODRV_CONTROL_CTRLMODE_TORQUE){
+		T_motor[index].odrive_set_axis.control_mode = ODRV_CONTROL_CTRLMODE_POSITION;
+		T_motor[index].odrive_set_axis.input_current = ODRV_CONTROL_INPUTMODE_POS_FILTER;
+		send_msg(index, MSG_SET_CONTROLLER_MODES);
+	} else {
+		T_motor[index].odrive_set_axis.input_pos = pos;
+		send_msg(index, MSG_SET_INPUT_CURRENT);
+	}
 }
 
 uint8_t Odrive_CAN_motors::send_msg(uint8_t index, Odrive_Command cmd){

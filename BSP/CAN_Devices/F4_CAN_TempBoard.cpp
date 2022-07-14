@@ -35,7 +35,7 @@ TemperBoard::TemperBoard(FDCAN_HandleTypeDef *_hfdcan){
 }
 
 void TemperBoard::init(void){
-    temper_board_tx_msg_t initcode = {
+    static temper_board_tx_msg_t initcode = {
         .val = {
             .a_e = 0,
             .a_r = 0,
@@ -45,7 +45,7 @@ void TemperBoard::init(void){
             .h2 = 0
         }
     };
-    bsp_can_send_message8(&can_devices, COMMAND_PACK_ID, info.raw);
+    bsp_can_send_message8(&can_devices, COMMAND_PACK_ID, initcode.raw);
 }
 
 

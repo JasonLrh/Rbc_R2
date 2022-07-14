@@ -46,7 +46,7 @@ public:
         uint16_t axis_node_id;
         uint32_t requested_state;
         int32_t control_mode;
-        int32_t input_mode;
+        int32_t input_mode = 0;
         int16_t vel_ff;
         int16_t current_ff;
         int32_t input_pos;
@@ -114,6 +114,7 @@ public:
     // void Tmotor_set_mode(Odrive_Controller_inputMode imode, Odrive_Controller_ctrlMode cmode);
     void setSpeed(uint8_t index, float speed);
     void setTorque(uint8_t index, float torque);
+    void setPos(uint8_t index, float pos);
 
     Odrive_motor_t T_motor[3];
 

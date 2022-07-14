@@ -99,6 +99,7 @@ int main(void)
   MX_UART8_Init();
   MX_FDCAN1_Init();
   MX_TIM6_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   fdcanfilter();
 
