@@ -51,14 +51,14 @@ if __name__ == '__main__':
     ser.start()
     h = 0
     while True:
-        h += 0.5
+        h += 2
         try:
             # k = input()
             # # print("[input]", k)
             # k += '\n'
-            k = """J{"m":[0,0],"f":{"h":%d,"r":45,"e":180},"s":{"h":500,"x":0,"isSuck":false}}"""%(h)
+            k = """J{"m":[%d,5],"f":{"h":%d,"r":45,"e":180},"s":{"h":%d,"x":0,"isSuck":false}}"""%(h, h,h)
             com.write(k.encode())
-            sleep(0.012)
+            sleep(0.060)
         except KeyboardInterrupt as e:
             print("EXIT KEY TRIGGER")
             ser.stop()

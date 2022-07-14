@@ -54,11 +54,17 @@ static void process_input(const char * cmd, uint16_t pos){
 extern remote_input_t remote_input;
 static void process_json(const char * cmd){
     cJSON * root = cJSON_Parse(cmd);
+    if (cJSON_GetErrorPtr() != NULL){
+        ST_LOGE("cJSON parse error");
+    }
 
     cJSON * subNode = cJSON_GetObjectItem(root, "m");
-    for (int i = 0; i < 2; i++){
-        cJSON_GetNumberValue( cJSON_GetArrayItem(subNode, i) );
-    }
+    // for (int i = 0; i < 2; i++){
+        // cJSON_GetNumberValue( cJSON_GetArrayItem(subNode, i) );
+    // }
+    remote_input.move.angle = cJSON_GetNumberValue( cJSON_GetArrayItem(subNode, 0) );
+    remote_input.move.speed = cJSON_GetNumberValue( cJSON_GetArrayItem(subNode, 1) );
+    
 
     subNode = cJSON_GetObjectItem(root, "f");
     remote_input.zhua.height = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "h") );
@@ -69,6 +75,7 @@ static void process_json(const char * cmd){
     remote_input.puller.height = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "h") );
     remote_input.puller.len = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "x") );
     remote_input.puller.isSuckerOn = (cJSON_IsTrue(cJSON_GetObjectItem(subNode, "isSuck")) == cJSON_True)? true : false ;
+    remote_input.puller.pState = 1;
 
     cJSON_Delete(root);
 }
@@ -81,7 +88,7 @@ void serialCmdProcTaskFunc(void const * argument) {
         dog_cmd_buff = NULL;
         if (xQueueReceive(qSerialPackHandle, &(dog_cmd_buff), portMAX_DELAY) == pdPASS) {
             uint16_t pos;
-            ST_LOGI("$ rec");
+            ST_LOGI("$ %s", dog_cmd_buff);
             for (pos = 0; pos < UART_BUFF_SIZE; pos++) {
                 if (dog_cmd_buff[pos] == '\0') {
                     break;
@@ -97,7 +104,7 @@ void serialCmdProcTaskFunc(void const * argument) {
                     break;
                 
                 default:
-                    process_input(dog_cmd_buff, pos);
+                    ST_LOGE("Error Input");
                     break;
                 }
             }

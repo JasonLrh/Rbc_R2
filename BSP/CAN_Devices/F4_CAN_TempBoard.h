@@ -28,6 +28,8 @@ public:
     };
 
     TemperBoard(FDCAN_HandleTypeDef *_hfdcan);
+
+    void init(void);
     
     bool set_angle_routate(float angle);
     bool set_angle_expand(float angle);

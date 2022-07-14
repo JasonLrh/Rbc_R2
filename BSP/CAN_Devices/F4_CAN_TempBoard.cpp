@@ -5,8 +5,8 @@
 #define COMMAND_PACK_ID 0x107
 #define RETURNS_PACK_ID 0x496
 
-#define H1_LIMIT 1500.0
-#define H2_LIMIT 1500.0
+#define H1_LIMIT 1700.0
+#define H2_LIMIT 8000.0
 
 
 TemperBoard temperBoard(&hfdcan1);
@@ -33,6 +33,21 @@ TemperBoard::TemperBoard(FDCAN_HandleTypeDef *_hfdcan){
     //     info.raw[i] = 0;
     // }
 }
+
+void TemperBoard::init(void){
+    temper_board_tx_msg_t initcode = {
+        .val = {
+            .a_e = 0,
+            .a_r = 0,
+            .pull_len = 0,
+            .pull_state = 0,
+            .h1 = 0,
+            .h2 = 0
+        }
+    };
+    bsp_can_send_message8(&can_devices, COMMAND_PACK_ID, info.raw);
+}
+
 
 bool TemperBoard::set_angle_routate(float angle){
     float m = (angle / 2);
