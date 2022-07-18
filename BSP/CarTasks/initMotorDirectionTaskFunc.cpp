@@ -2,6 +2,7 @@
 #include "CAN_Devices/bsp_can.h"
 #include "CAN_Devices/Dji_CAN_motors.h"
 #include "CAN_Devices/Odrive_CAN_motors.h"
+#include "Uart_Devices/relay_switches.h"
 #include "main.h"
 #include "cmsis_os.h"
 
@@ -30,7 +31,7 @@ extern motors_output_t motor_values;
 
 EventGroupHandle_t init_event_handle = xEventGroupCreate();
 float offset[3] = {28.f, -143.f, 145.f};
-uint8_t is_init_ok = 0;
+volatile uint8_t is_init_ok = 0;
 
 
 void initMotorDirectionTaskFunc(void const * argument) {
@@ -42,6 +43,7 @@ void initMotorDirectionTaskFunc(void const * argument) {
     motor_values.type = CTRL_TYPE_ANGLE;
 
     ST_LOGI("init function start");
+    relay_open(RELAY_INDEX_SUCK);
 
     for(;;) {
         motor_values.type = CTRL_TYPE_ANGLE;
@@ -69,9 +71,7 @@ void initMotorDirectionTaskFunc(void const * argument) {
 
     }
 
-    ST_LOGD("create and delete task");
-
-    xTaskCreate(userInputTaskFunc, "UserInput", 1024, NULL, 5, NULL);
     is_init_ok = 1;
+    xTaskCreate(userInputTaskFunc, "UserInput", 1024, NULL, 5, NULL);
     vTaskDelete(NULL);
 }

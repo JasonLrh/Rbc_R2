@@ -31,21 +31,21 @@ public:
 
     void init(void);
     
-    bool set_angle_routate(float angle);
-    bool set_angle_expand(float angle);
-    bool set_height_lower(float height);
-    bool set_height_higher(float height);
-    bool set_sucker(bool on);
-    bool set_puller_force(float val);
-    bool set_puller_position(float len);
+    // bool set_angle_routate(float angle);
+    // bool set_angle_expand(float angle);
+    // bool set_height_lower(float height);
+    // bool set_height_higher(float height);
+    // bool set_sucker(bool on);
+    // bool set_puller_force(float val);
+    // bool set_puller_position(float len);
 
     void output(void);
 
     temper_board_tx_msg_t state;
+    temper_board_tx_msg_t info;
 
 private:
     uint32_t sucker_switch = SUCKER_STATE_OFF;
-    temper_board_tx_msg_t info;
 
     bsp_can_device_t can_devices;
 };

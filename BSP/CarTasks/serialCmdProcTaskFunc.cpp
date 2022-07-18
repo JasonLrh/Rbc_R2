@@ -52,7 +52,7 @@ void cmd_server_start(UART_HandleTypeDef *huart)
 //     }
 // }
 
-extern remote_input_t remote_input;
+remote_input_t serial_input;
 static void process_json(const char * cmd){
     cJSON * root = cJSON_Parse(cmd);
     if (cJSON_GetErrorPtr() != NULL){
@@ -63,23 +63,70 @@ static void process_json(const char * cmd){
     // for (int i = 0; i < 2; i++){
         // cJSON_GetNumberValue( cJSON_GetArrayItem(subNode, i) );
     // }
-    remote_input.move.angle = cJSON_GetNumberValue( cJSON_GetArrayItem(subNode, 0) );
-    remote_input.move.speed = cJSON_GetNumberValue( cJSON_GetArrayItem(subNode, 1) );
-    remote_input.move.type  = cJSON_GetNumberValue( cJSON_GetArrayItem(subNode, 2) );
+    serial_input.move.angle = cJSON_GetNumberValue( cJSON_GetArrayItem(subNode, 0) );
+    serial_input.move.speed = cJSON_GetNumberValue( cJSON_GetArrayItem(subNode, 1) );
+    serial_input.move.type  = (int)cJSON_GetNumberValue( cJSON_GetArrayItem(subNode, 2) );
     
 
     subNode = cJSON_GetObjectItem(root, "f");
-    remote_input.zhua.height = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "h") );
-    remote_input.zhua.rotate_angle = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "r") );
-    remote_input.zhua.expand_angle = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "e") );
+    serial_input.zhua.height = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "h") );
+    serial_input.zhua.rotate_angle = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "r") );
+    serial_input.zhua.expand_angle = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "e") );
 
     subNode = cJSON_GetObjectItem(root, "s");
-    remote_input.puller.height = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "h") );
-    remote_input.puller.len = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "x") );
-    remote_input.puller.isSuckerOn = (cJSON_IsTrue(cJSON_GetObjectItem(subNode, "isSuck")) == cJSON_True)? true : false ;
-    remote_input.puller.pState = 1;
+    serial_input.puller.height = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "h") );
+    serial_input.puller.len = cJSON_GetNumberValue( cJSON_GetObjectItem(subNode, "x") );
+    serial_input.puller.isSuckerOn = (cJSON_IsTrue(cJSON_GetObjectItem(subNode, "isSuck")) == cJSON_True)? true : false ;
+    serial_input.puller.pState = 1;
 
     cJSON_Delete(root);
+}
+
+
+struct __packed binary_data_arch_t{
+    char __prechar;
+    uint8_t mvType; 
+    // 2
+    int8_t zhuaA_e;
+    int8_t zhuaA_r;
+
+    // 4
+
+    float mvAngle;
+    float mvSpeed;
+    // 12
+
+    uint16_t zhuaH1;
+    uint16_t zhuaH2;
+    // 16
+
+    uint8_t pullLen;
+    uint8_t pullState;
+
+    // 18
+    char __end_pack;
+};
+// 19
+
+
+static void process_binary(const char * bin){
+    binary_data_arch_t * ptr = (binary_data_arch_t *)bin;
+    if (ptr->__end_pack == '\n') {
+        serial_input.move.angle = ptr->mvAngle;
+        serial_input.move.speed = ptr->mvSpeed;
+        serial_input.move.type  = ptr->mvType;
+        
+        serial_input.zhua.height = ptr->zhuaH1;
+        serial_input.zhua.rotate_angle = ptr->zhuaA_r;
+        serial_input.zhua.expand_angle = ptr->zhuaA_e;
+
+        serial_input.puller.height = ptr->zhuaH2;
+        serial_input.puller.len = ptr->pullLen;
+        serial_input.puller.isSuckerOn = (ptr->pullState) >> 4;
+        serial_input.puller.pState = (ptr->pullState) & 0x0f;
+    } else {
+        ST_LOGE("invalid binary pack");
+    }
 }
 
 void serialCmdProcTaskFunc(void const * argument) {
@@ -90,7 +137,8 @@ void serialCmdProcTaskFunc(void const * argument) {
         dog_cmd_buff = NULL;
         if (xQueueReceive(qSerialPackHandle, &(dog_cmd_buff), portMAX_DELAY) == pdPASS) {
             uint16_t pos;
-            ST_LOGI("$ %s", dog_cmd_buff);
+            // ST_LOGI("$ %s", dog_cmd_buff);
+            // ST_LOGI("$ <");
             for (pos = 0; pos < UART_BUFF_SIZE; pos++) {
                 if (dog_cmd_buff[pos] == '\0') {
                     break;
@@ -100,10 +148,18 @@ void serialCmdProcTaskFunc(void const * argument) {
                 // ! cmd process code 
                 switch (dog_cmd_buff[0])
                 {
-                case 'J':
+                case 'J':{
                     process_json(dog_cmd_buff + 1);
-                    // ST_LOGI("Height:%.2f", remote_input.zhua.height);
-                    break;
+                    // ST_LOGI("Height:%.2f", serial_input.zhua.height);
+                } break;
+
+                case 'B':{
+                    // if (pos >= 18){
+                        process_binary(dog_cmd_buff);
+                    // } else {
+                        // ST_LOGE("E");
+                    // }
+                } break;
                 
                 default:
                     ST_LOGE("Error Input");

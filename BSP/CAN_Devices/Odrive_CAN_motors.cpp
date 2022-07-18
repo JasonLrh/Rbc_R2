@@ -42,36 +42,37 @@ typedef union
 } odrv_heartbeat_data_t;
 
 void Odrive_CAN_motors::setSpeed(uint8_t index, float speed){
-	if (T_motor[index].odrive_set_axis.input_mode != ODRV_CONTROL_CTRLMODE_VELOCITY){
-		T_motor[index].odrive_set_axis.control_mode = ODRV_CONTROL_CTRLMODE_VELOCITY;
-		T_motor[index].odrive_set_axis.input_current = ODRV_CONTROL_INPUTMODE_VEL_RAMP;
+	T_motor[index].odrive_set_axis.input_vel = speed;
+	send_msg(index, MSG_SET_INPUT_VEL);
+	if (T_motor[index].odrive_set_axis.control_mode != ODRV_CONTROL_CTRLMODE_VELOCITY){
+		T_motor[index].odrive_set_axis.control_mode  = ODRV_CONTROL_CTRLMODE_VELOCITY;
+		T_motor[index].odrive_set_axis.input_mode    = ODRV_CONTROL_INPUTMODE_VEL_RAMP;
 		send_msg(index, MSG_SET_CONTROLLER_MODES);
-	} else {
-		T_motor[index].odrive_set_axis.input_vel = speed;
-		send_msg(index, MSG_SET_INPUT_VEL);
 	}
 }
 
 void Odrive_CAN_motors::setTorque(uint8_t index, float torque){
-	if (T_motor[index].odrive_set_axis.input_mode != ODRV_CONTROL_CTRLMODE_TORQUE){
-		T_motor[index].odrive_set_axis.control_mode = ODRV_CONTROL_CTRLMODE_TORQUE;
-		T_motor[index].odrive_set_axis.input_current = ODRV_CONTROL_INPUTMODE_PASSTHROUGH;
+	T_motor[index].odrive_set_axis.input_current = torque;
+	send_msg(index, MSG_SET_INPUT_CURRENT);
+	if (T_motor[index].odrive_set_axis.control_mode != ODRV_CONTROL_CTRLMODE_TORQUE){
+		T_motor[index].odrive_set_axis.control_mode  = ODRV_CONTROL_CTRLMODE_TORQUE;
+		T_motor[index].odrive_set_axis.input_mode    = ODRV_CONTROL_INPUTMODE_PASSTHROUGH;
 		send_msg(index, MSG_SET_CONTROLLER_MODES);
-	} else {
-		T_motor[index].odrive_set_axis.input_current = torque;
-		send_msg(index, MSG_SET_INPUT_CURRENT);
 	}
 }
 
 void Odrive_CAN_motors::setPos(uint8_t index, float pos){
-	if (T_motor[index].odrive_set_axis.input_mode != ODRV_CONTROL_CTRLMODE_TORQUE){
-		T_motor[index].odrive_set_axis.control_mode = ODRV_CONTROL_CTRLMODE_POSITION;
-		T_motor[index].odrive_set_axis.input_current = ODRV_CONTROL_INPUTMODE_POS_FILTER;
+	T_motor[index].odrive_set_axis.input_pos = pos;
+	send_msg(index, MSG_SET_INPUT_POS);
+	if (T_motor[index].odrive_set_axis.control_mode != ODRV_CONTROL_CTRLMODE_POSITION){
+		T_motor[index].odrive_set_axis.control_mode  = ODRV_CONTROL_CTRLMODE_POSITION;
+		T_motor[index].odrive_set_axis.input_mode    = ODRV_CONTROL_INPUTMODE_POS_FILTER;
 		send_msg(index, MSG_SET_CONTROLLER_MODES);
-	} else {
-		T_motor[index].odrive_set_axis.input_pos = pos;
-		send_msg(index, MSG_SET_INPUT_CURRENT);
 	}
+}
+
+void Odrive_CAN_motors::askPos(uint8_t index){
+	send_msg(index, MSG_GET_ENCODER_ESTIMATES);
 }
 
 uint8_t Odrive_CAN_motors::send_msg(uint8_t index, Odrive_Command cmd){
@@ -83,7 +84,10 @@ uint8_t Odrive_CAN_motors::send_msg(uint8_t index, Odrive_Command cmd){
 	odrive_tx_header.FDFormat = FDCAN_CLASSIC_CAN;
 	odrive_tx_header.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
 	odrive_tx_header.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+	odrive_tx_header.TxFrameType = FDCAN_DATA_FRAME;
+	odrive_tx_header.DataLength = FDCAN_DLC_BYTES_0;
 	odrive_tx_header.MessageMarker = 0;
+	
 
     OdriveAxisSetState_t * odrv_set = &(T_motor[index].odrive_set_axis);
     switch(cmd) {
@@ -92,11 +96,9 @@ uint8_t Odrive_CAN_motors::send_msg(uint8_t index, Odrive_Command cmd){
 			break;
 		case MSG_GET_MOTOR_ERROR:
 			odrive_tx_header.TxFrameType = FDCAN_REMOTE_FRAME;
-			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_0;
 			break;
 		case MSG_GET_ENCODER_ERROR:
 			odrive_tx_header.TxFrameType = FDCAN_REMOTE_FRAME;
-			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_0;
 			break;
 		case MSG_GET_SENSORLESS_ERROR:
 			/* TODO: Implement */
@@ -106,7 +108,6 @@ uint8_t Odrive_CAN_motors::send_msg(uint8_t index, Odrive_Command cmd){
 			break;
 		case MSG_SET_AXIS_REQUESTED_STATE:
 			memcpy(pack.raw, &(odrv_set->requested_state), 4);
-			odrive_tx_header.TxFrameType = FDCAN_DATA_FRAME;
 			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_4;
 			break;
 		case MSG_SET_AXIS_STARTUP_CONFIG:
@@ -114,62 +115,50 @@ uint8_t Odrive_CAN_motors::send_msg(uint8_t index, Odrive_Command cmd){
 			break;
 		case MSG_GET_ENCODER_ESTIMATES:
 			odrive_tx_header.TxFrameType = FDCAN_REMOTE_FRAME;
-			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_0;
 			break;
 		case MSG_GET_ENCODER_COUNT:
 			odrive_tx_header.TxFrameType = FDCAN_REMOTE_FRAME;
-			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_0;
 			break;
 		case MSG_SET_CONTROLLER_MODES:
-			pack.raw[0] = odrv_set->control_mode;
-			pack.raw[4] = odrv_set->input_mode;
-			odrive_tx_header.TxFrameType = FDCAN_DATA_FRAME;
+			pack.int32_data[0] = odrv_set->control_mode;
+			pack.int32_data[1] = odrv_set->input_mode;
 			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_8;
 			break;
 		case MSG_SET_INPUT_POS:
-			memcpy(pack.raw, &(odrv_set->input_pos), 4);
+			pack.value[0] = odrv_set->input_pos;
 			pack.raw[4] = odrv_set->vel_ff & 0x00FF;
 			pack.raw[5] = odrv_set->vel_ff >> 8;
 			pack.raw[6] = odrv_set->current_ff & 0x00FF;
 			pack.raw[7] = odrv_set->current_ff >> 8;
-			odrive_tx_header.TxFrameType = FDCAN_DATA_FRAME;
 			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_8;
 			break;
 		case MSG_SET_INPUT_VEL:
 			pack.value[0] = odrv_set->input_vel;	// odrive_set_axis0.input_vel;
 			pack.value[1] = odrv_set->torque_vel;	 // odrive_set_axis0.torque_vel;
-			odrive_tx_header.TxFrameType = FDCAN_DATA_FRAME;
 			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_8;
-			// ST_LOGI("%.2f, %.2f", pack.value[0], pack.value[1]);
 			break;
 		case MSG_SET_INPUT_CURRENT:
-			memcpy(pack.raw, &(odrv_set->input_current), 4);
-			odrive_tx_header.TxFrameType = FDCAN_DATA_FRAME;
+			pack.value[0] = odrv_set->input_current;
 			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_4;
 			break;
 		case MSG_SET_VEL_LIMIT:
 			memcpy(pack.raw, &(odrv_set->vel_limit), 4);
-			odrive_tx_header.TxFrameType = FDCAN_DATA_FRAME;
 			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_4;
 			break;
 		case MSG_START_ANTICOGGING:
 			odrive_tx_header.TxFrameType = FDCAN_REMOTE_FRAME;
-			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_0;
 			break;
 		case MSG_SET_TRAJ_VEL_LIMIT:
 			memcpy(pack.raw, &(odrv_set->traj_vel_limit), 4);
-			odrive_tx_header.TxFrameType = FDCAN_DATA_FRAME;
 			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_4;
 			break;
 		case MSG_SET_TRAJ_ACCEL_LIMITS:
 			memcpy(pack.raw    , &(odrv_set->traj_accel_limit), 4);
 			memcpy(pack.raw + 4, &(odrv_set->traj_decel_limit), 4);
-			odrive_tx_header.TxFrameType = FDCAN_DATA_FRAME;
 			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_4;
 			break;
 		case MSG_SET_TRAJ_A_PER_CSS:
 			memcpy(pack.raw, &(odrv_set->traj_a_per_css), 4);
-			odrive_tx_header.TxFrameType = FDCAN_DATA_FRAME;
 			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_4;
 			break;
 		case MSG_GET_IQ:
@@ -180,15 +169,12 @@ uint8_t Odrive_CAN_motors::send_msg(uint8_t index, Odrive_Command cmd){
 			break;
 		case MSG_RESET_ODRIVE:
 			odrive_tx_header.TxFrameType = FDCAN_REMOTE_FRAME;
-			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_0;
 			break;
 		case MSG_GET_VBUS_VOLTAGE:
 			odrive_tx_header.TxFrameType = FDCAN_REMOTE_FRAME;
-			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_0;
 			break;
 		case MSG_CLEAR_ERRORS:
 			odrive_tx_header.TxFrameType = FDCAN_REMOTE_FRAME;
-			odrive_tx_header.DataLength = FDCAN_DLC_BYTES_0;
 			break;
 		case MSG_CO_HEARTBEAT_CMD:
 			/* TODO: Implement */

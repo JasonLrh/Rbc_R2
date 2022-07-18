@@ -48,8 +48,10 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 		HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &rx_header, rx_data);
 		dev = root_dev;
 		while (dev != NULL){
-			if (dev->rx_cb(&rx_header, rx_data) == BSP_CAN_RX_CB_VALUE_VALID){
-				break;
+			if (dev->hfdcan == hfdcan){
+				if ( dev->rx_cb(&rx_header, rx_data) == BSP_CAN_RX_CB_VALUE_VALID ) {
+					break;
+				}
 			}
 			dev = dev->next;
 		}

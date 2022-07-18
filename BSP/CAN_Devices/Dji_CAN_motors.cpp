@@ -79,7 +79,9 @@ static bsp_can_rx_cb_ret_e __dji_motors_rx_process(FDCAN_RxHeaderTypeDef *pRxHea
 	else if(state->ecd - state->last_ecd < -4096)
 		state->circle++;
 	
-	gp->motor[id].pid.update_state(state->speed_rpm * 1.f, gp->motor[id].get_angle(true));
+	gp->motor[id].angle = gp->motor[id].get_angle(true);
+	gp->motor[id].speed = state->speed_rpm * 1.f;
+	gp->motor[id].pid.update_state(gp->motor[id].speed, gp->motor[id].angle );
 	
 	return BSP_CAN_RX_CB_VALUE_VALID;
 }

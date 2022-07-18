@@ -50,7 +50,7 @@ if __name__ == '__main__':
     cfgFileName = sys.argv[1]
     if cfgFileName.endswith('.json') != True:
         print("please select config json file")
-        exit(0)
+        exit(1)
     with open(cfgFileName, 'r') as f:
         dic = json.loads(f.read())
         server_name = dic['host']
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     if len(sys.argv) > 2:
         if sys.argv[2] == 'E':
             bootWriter.exit_boot()
-            exit()
+            exit(1)
 
     if bin_file_name.endswith('.bin'):
         # write flash start
@@ -98,7 +98,7 @@ if __name__ == '__main__':
                     err_cnt += 1
                     if err_cnt >= 10:
                         print("no return. exit")
-                        exit(0)
+                        exit(1)
                 
                 if len(rx_str) >= 7:
                     if rxb.decode() == 'S':

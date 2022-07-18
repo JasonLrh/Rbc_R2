@@ -45,14 +45,14 @@ public:
     {
         uint16_t axis_node_id;
         uint32_t requested_state;
-        int32_t control_mode;
+        int32_t control_mode = 0;
         int32_t input_mode = 0;
         int16_t vel_ff;
         int16_t current_ff;
-        int32_t input_pos;
+        float input_pos;
         float input_vel;
         float torque_vel;
-        int32_t input_current;
+        float input_current;
         float vel_limit;
         float traj_vel_limit;
         float traj_accel_limit;
@@ -115,6 +115,8 @@ public:
     void setSpeed(uint8_t index, float speed);
     void setTorque(uint8_t index, float torque);
     void setPos(uint8_t index, float pos);
+
+    void askPos(uint8_t index);
 
     Odrive_motor_t T_motor[3];
 

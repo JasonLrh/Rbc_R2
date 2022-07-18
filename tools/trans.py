@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 from time import time
+from rsa import sign
 import serial
 from serial.threaded import LineReader, ReaderThread
 
 import sys
 import json
+import struct
 
 from time import sleep
 
@@ -53,12 +55,23 @@ if __name__ == '__main__':
     while True:
         h += 2
         try:
-            # k = input()
-            # # print("[input]", k)
+            k = input()
             # k += '\n'
-            k = """J{"m":[%d,5],"f":{"h":%d,"r":45,"e":180},"s":{"h":%d,"x":0,"isSuck":false}}"""%(h, h,h)
-            com.write(k.encode())
-            sleep(0.060)
+            
+            # k = "B".encode() + \
+            #     int.to_bytes(1, 1, 'little', signed=False) + \
+            #     int.to_bytes(0, 1, 'little', signed=True) + \
+            #     int.to_bytes(0, 1, 'little', signed=True) + \
+            #     struct.pack('<f', 90.0) + struct.pack('<f', 0.0) + \
+            #     int.to_bytes(0, 2, 'little', signed=False) + \
+            #     int.to_bytes(500, 2, 'little', signed=False) + \
+            #     int.to_bytes(0, 1, 'little', signed=False) + \
+            #     int.to_bytes(1, 1, 'little', signed=False) + \
+            #     "\n".encode()
+            # print(".", end='', flush=True)
+            com.write(k)
+            # sleep(0.060)
+            
         except KeyboardInterrupt as e:
             print("EXIT KEY TRIGGER")
             ser.stop()

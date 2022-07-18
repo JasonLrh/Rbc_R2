@@ -14,6 +14,7 @@ extern "C" {
 
 #define CTRL_TYPE_ANGLE 0
 #define CTRL_TYPE_SPEED 1
+#define CTRL_TYPE_SWEEP 2
 
 
 typedef struct _motors_output_t {
@@ -31,14 +32,14 @@ typedef struct _remote_input_t
     } move;
 
     struct {
-        float rotate_angle;
-        float expand_angle;
-        float height;
+        int8_t rotate_angle;
+        int8_t expand_angle;
+        uint16_t height;
     } zhua;
 
     struct {
-        float height;
-        float len;
+        uint16_t height;
+        uint8_t len;
         uint8_t pState;
         uint8_t isSuckerOn;
     } puller;

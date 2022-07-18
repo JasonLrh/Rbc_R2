@@ -49,6 +49,7 @@ Core/Src/stm32h7xx_hal_timebase_tim.c \
 Core/Src/system_stm32h7xx.c \
 Core/Src/boot.c \
 BSP/CAN_Devices/bsp_can.c \
+BSP/Uart_Devices/relay_switches.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_cortex.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c \
